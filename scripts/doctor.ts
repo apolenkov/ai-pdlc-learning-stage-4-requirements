@@ -14,10 +14,11 @@ try {
   const git = await command("git", ["--version"]);
   const node = await command("node", ["--version"]);
   const npm = await command("npm", ["--version"]);
+  const openspec = await command("openspec", ["--version"]);
   const lock = await readLock();
   await readFile(resolve(root, "CONTEXT.md"), "utf8");
   await readFile(resolve(root, "product.yaml"), "utf8");
-  console.log(`doctor: PASS (${git}; ${node}; npm ${npm}; lock ${lock.commit.slice(0, 8)}…)`);
+  console.log(`doctor: PASS (${git}; ${node}; npm ${npm}; OpenSpec ${openspec}; lock ${lock.commit.slice(0, 8)}…)`);
 } catch (error) {
   console.error(`doctor: FAIL — ${error instanceof Error ? error.message : String(error)}`);
   process.exitCode = 1;

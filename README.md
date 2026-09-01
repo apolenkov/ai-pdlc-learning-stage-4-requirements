@@ -9,7 +9,7 @@ macOS, Linux (Terminal/Bash):
 ```bash
 git clone https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git
 cd sdd-credit-calculator-product-meta-example
-npm install
+npm ci
 make doctor
 make bootstrap
 make bootstrap
@@ -22,26 +22,34 @@ Windows PowerShell:
 ```powershell
 git clone https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git
 Set-Location sdd-credit-calculator-product-meta-example
-npm install
+npm ci
 npm run doctor
 npm run bootstrap
 npm run bootstrap
-npm run validate
+npm run check
 npm run start
 ```
 
 Linux без Make:
 
 ```bash
-npm install
+npm ci
 npm run doctor
 npm run bootstrap
 npm run bootstrap
-npm run validate
+npm run check
 npm run start
 ```
 
-`make start` запускает безопасную проверку запуска и выводит границу сервиса; он не копирует и не изменяет исходный код продукта. `make bootstrap` загружает сервис в `.workspace/services/credit-calculator/` строго по SHA из `services.lock.yaml`. Если URL или SHA недоступны, команда завершается ошибкой и не подменяет версию текущей веткой.
+`npm run check` и `make validate` выполняют один полный gate: TypeScript typecheck, тесты, строгую проверку OpenSpec, privacy/secret scan и структурную проверку. Структурная проверка требует предварительного `bootstrap`.
+
+`make bootstrap` загружает сервис в `.workspace/services/credit-calculator/` строго по полному SHA из `services.lock.yaml` и устанавливает зависимости по lock-файлу. Повторный запуск безопасен и проверяет тот же SHA, чистый Git status и точный URL `origin`. Эти же инварианты проверяются перед `validate` и `start`; несоответствие завершает команду ошибкой.
+
+`make start` запускает проверенную закреплённую версию на <http://127.0.0.1:4173/>. Пока сервер работает, отдельная HTTP-приёмка запускается в другом терминале:
+
+```bash
+make acceptance-http
+```
 
 ## Что проверять
 

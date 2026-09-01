@@ -14,5 +14,14 @@ test("lock pins a full SHA and ignored workspace", async () => {
 test("context remains a domain glossary", async () => {
   const context = await readFile(resolve(root, "CONTEXT.md"), "utf8");
   assert.match(context, /Кредитный калькулятор/);
+  assert.match(context, /## Язык/);
+  assert.match(context, /_Избегать_:/);
   assert.doesNotMatch(context, /TypeScript|npm install|Makefile|git clone/);
+});
+
+test("generated and local artifacts stay outside Git", async () => {
+  const gitignore = await readFile(resolve(root, ".gitignore"), "utf8");
+  for (const entry of ["node_modules/", "dist/", "coverage/", "test-results/", "playwright-report/", ".workspace/", ".env", ".DS_Store", ".idea/", ".vscode/", "*.log"]) {
+    assert.match(gitignore, new RegExp(`^${entry.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "m"));
+  }
 });
