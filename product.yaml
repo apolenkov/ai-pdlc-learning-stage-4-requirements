@@ -1,0 +1,6 @@
+name: credit-calculator-product
+title: Синтетический кредитный калькулятор
+purpose: Объединить контекст продукта и проверяемые спецификации без копирования кода сервиса.
+domain_context: CONTEXT.md
+service_lock: services.lock.yaml
+workspace: .workspace/services/credit-calculator

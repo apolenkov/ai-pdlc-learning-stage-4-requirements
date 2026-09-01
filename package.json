@@ -1,0 +1,19 @@
+{
+  "name": "sdd-credit-calculator-product-meta-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "doctor": "tsx scripts/doctor.ts",
+    "bootstrap": "tsx scripts/bootstrap.ts",
+    "validate": "tsx scripts/validate.ts",
+    "start": "tsx scripts/start.ts",
+    "test": "tsx --test tests/*.test.ts",
+    "check": "npm run doctor && npm test && npm run validate"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "@types/node": "^24.3.0"
+  }
+}
