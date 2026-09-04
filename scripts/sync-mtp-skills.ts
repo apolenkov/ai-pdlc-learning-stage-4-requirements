@@ -14,12 +14,9 @@ export const LOCK_PATH = resolve(root, ".agents/mtp-skills.lock.json");
 export const SKILLS_ROOT = resolve(root, ".agents/skills");
 
 export const managedSkills = [
-  { name: "grill-me", upstreamPath: "skills/productivity/grill-me" },
   { name: "grill-with-docs", upstreamPath: "skills/engineering/grill-with-docs" },
   { name: "grilling", upstreamPath: "skills/productivity/grilling" },
   { name: "domain-modeling", upstreamPath: "skills/engineering/domain-modeling" },
-  { name: "research", upstreamPath: "skills/engineering/research" },
-  { name: "prototype", upstreamPath: "skills/engineering/prototype" },
 ] as const;
 
 export type ProvenanceFile = Readonly<{ upstreamPath: string; localPath: string; sha256: string }>;
@@ -28,7 +25,7 @@ export type MtpLock = Readonly<{
   source: string;
   commit: string;
   license: Readonly<{ type: "MIT"; upstreamPath: "LICENSE"; localPath: ".agents/skills/MTP-LICENSE"; sha256: string }>;
-  rootSkills: readonly ["grill-me", "grill-with-docs"];
+  rootSkills: readonly ["grill-with-docs"];
   managedSkills: readonly string[];
   dependencyClosure: Readonly<Record<string, readonly string[]>>;
   excludedSkills: readonly ["to-spec"];
@@ -84,10 +81,9 @@ export const buildLock = async (checkout: string, commit: string): Promise<MtpLo
     source: MTP_SOURCE,
     commit,
     license: { type: "MIT", upstreamPath: "LICENSE", localPath: ".agents/skills/MTP-LICENSE", sha256: sha256(license) },
-    rootSkills: ["grill-me", "grill-with-docs"],
+    rootSkills: ["grill-with-docs"],
     managedSkills: managedSkills.map(({ name }) => name),
     dependencyClosure: {
-      "grill-me": ["grilling"],
       "grill-with-docs": ["grilling", "domain-modeling"],
     },
     excludedSkills: ["to-spec"],

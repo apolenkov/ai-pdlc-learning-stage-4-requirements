@@ -28,7 +28,6 @@ async function collect(directory: string): Promise<string[]> {
 
 for (const file of await collect(root)) {
   const name = relative(root, file).replaceAll("\\", "/");
-  if (name === ".env.example") continue;
   if (forbiddenFiles.some((pattern) => pattern.test(name))) errors.push(`forbidden file: ${name}`);
   if (!textExtensions.has(extname(file))) continue;
   const content = await readFile(file, "utf8");

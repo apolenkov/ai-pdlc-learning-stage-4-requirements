@@ -9,21 +9,14 @@
     "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
   },
   "rootSkills": [
-    "grill-me",
     "grill-with-docs"
   ],
   "managedSkills": [
-    "grill-me",
     "grill-with-docs",
     "grilling",
-    "domain-modeling",
-    "research",
-    "prototype"
+    "domain-modeling"
   ],
   "dependencyClosure": {
-    "grill-me": [
-      "grilling"
-    ],
     "grill-with-docs": [
       "grilling",
       "domain-modeling"
@@ -54,16 +47,6 @@
       "sha256": "327a2b50620e2fd70abc6893cd6965e76b20f8d0adb0dc2c8d5eb3845efb643e"
     },
     {
-      "upstreamPath": "skills/productivity/grill-me/agents/openai.yaml",
-      "localPath": ".agents/skills/grill-me/agents/openai.yaml",
-      "sha256": "c061e39c3e0f9d865fb1b97556d485704af2a8a58f4b8221a8917a5c2074a32b"
-    },
-    {
-      "upstreamPath": "skills/productivity/grill-me/SKILL.md",
-      "localPath": ".agents/skills/grill-me/SKILL.md",
-      "sha256": "caaf8b8de1684f96e26b28f3c29189db5c89cce4b73e1c93d86164f66ef88637"
-    },
-    {
       "upstreamPath": "skills/engineering/grill-with-docs/agents/openai.yaml",
       "localPath": ".agents/skills/grill-with-docs/agents/openai.yaml",
       "sha256": "94cd0ab161fb468a836349f5ed482ba58ce8e709a05c57ce533d739dbd35cca9"
@@ -82,36 +65,6 @@
       "upstreamPath": "skills/productivity/grilling/SKILL.md",
       "localPath": ".agents/skills/grilling/SKILL.md",
       "sha256": "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2"
-    },
-    {
-      "upstreamPath": "skills/engineering/prototype/agents/openai.yaml",
-      "localPath": ".agents/skills/prototype/agents/openai.yaml",
-      "sha256": "5af65e43ab41a350436697b81e27b7f848d36782043b73c322bb2c9fa9cc55dc"
-    },
-    {
-      "upstreamPath": "skills/engineering/prototype/LOGIC.md",
-      "localPath": ".agents/skills/prototype/LOGIC.md",
-      "sha256": "f61c7d249e786a79ef289018901c348271e1798dd0b0bc5607b5c6f4d4a01ab9"
-    },
-    {
-      "upstreamPath": "skills/engineering/prototype/SKILL.md",
-      "localPath": ".agents/skills/prototype/SKILL.md",
-      "sha256": "714de632d116bb73f65cdb5a882db15b9369a6713b9a47c0fad827848f0bfbe3"
-    },
-    {
-      "upstreamPath": "skills/engineering/prototype/UI.md",
-      "localPath": ".agents/skills/prototype/UI.md",
-      "sha256": "723211e878acbc7b6ff09755263f3295cde724ba902ff0064da41eed51d45ad3"
-    },
-    {
-      "upstreamPath": "skills/engineering/research/agents/openai.yaml",
-      "localPath": ".agents/skills/research/agents/openai.yaml",
-      "sha256": "9b4c470d63221c1f68f22df70b83e2f12401b317babe0d1b7b5f24a974474d0d"
-    },
-    {
-      "upstreamPath": "skills/engineering/research/SKILL.md",
-      "localPath": ".agents/skills/research/SKILL.md",
-      "sha256": "985569f15739c713d6784887c3d186d4ef9ac85bec5ad9c068d25bf0739928e4"
     }
   ]
 }

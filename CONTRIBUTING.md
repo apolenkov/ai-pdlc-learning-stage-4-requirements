@@ -1,11 +1,55 @@
-# Как менять метарепозиторий
+# Сопровождение шаблона
 
-1. Выполните `npm ci`, затем `npm run setup`. Команда проверит инструменты, установит закреплённые MTP skills и сервис, повторит bootstrap и запустит полный gate.
-2. Прочитайте `CONTEXT.md`, `product.yaml`, `services.lock.yaml` и `AGENTS.md`.
-3. Пройдите MTP grill. Если остаётся существенная развилка, используйте OpenSpec Explore; иначе переходите к Propose.
-4. Создайте OpenSpec Propose и остановитесь на человеческой проверке. Не запускайте Apply автоматически.
-5. Запустите `npm run doctor`, затем `npm run check`.
-6. Не добавляйте исходный код сервиса: он живёт в отдельном репозитории.
-7. Проверьте `git status` и убедитесь, что `.workspace/` не отслеживается.
+## Полная локальная проверка
 
-Обновлять MTP можно только явно: `npm run skills:update -- <полный-commit-sha>`. После обновления проверьте diff lock-файла и `npm run check`.
+Используйте чистую копию репозитория:
+
+```bash
+npm ci
+npm run setup
+```
+
+`setup` выполняет preflight, один bootstrap закреплённого сервиса и полный
+`check`. Повторная ручная проверка без развёртывания: `npm run check`.
+
+OpenSpec Store проверяется штатным CLI:
+
+```bash
+npm exec openspec -- store list --json
+npm exec openspec -- store doctor sdd-credit-calculator-product-meta --json
+```
+
+Регистрацию рабочего checkout выполняет `setup-analysis-workspace`. Для
+временного acceptance-checkout обязательно задавайте отдельный временный
+`XDG_DATA_HOME` и удаляйте его после проверки: тест не должен менять
+пользовательский реестр Store.
+
+## Закреплённые MTP skills
+
+В шаблоне хранится только `grill-with-docs` и его зависимости. Версия и хэши
+зафиксированы в `.agents/mtp-skills.lock.json`.
+
+```bash
+npm run skills:check
+npm run skills:update -- <полный-commit-sha>
+```
+
+Обновление принимает только полный SHA и должно проходить как отдельный
+проверяемый diff. MTP `to-spec` не устанавливается: спецификация ведётся в
+OpenSpec.
+
+## Ручная проверка сервиса
+
+```bash
+npm run start
+```
+
+Пока сервер работает, в другом терминале:
+
+```bash
+npm run acceptance:http
+```
+
+Не редактируйте `.workspace/` и не добавляйте код сервиса в метарепозиторий.
+Архитектура и опциональный Workset описаны в
+[docs/architecture/openspec-store-workset.md](docs/architecture/openspec-store-workset.md).
