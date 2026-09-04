@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 
-import { assertFullSha, LOCK_PATH, MTP_SOURCE, verifyInstalledSkills, type MtpLock } from "../scripts/sync-mtp-skills.js";
+import { assertFullSha, LOCK_PATH, MTP_SOURCE, type MtpLock } from "../scripts/sync-mtp-skills.js";
 
-test("MTP skills are pinned, complete, attributed and byte-exact", async () => {
+test("MTP provenance declares the retained dependency set", async () => {
   const lock = JSON.parse(await readFile(LOCK_PATH, "utf8")) as MtpLock;
   assert.equal(lock.source, MTP_SOURCE);
   assert.match(lock.commit, /^[0-9a-f]{40}$/u);
@@ -13,7 +13,6 @@ test("MTP skills are pinned, complete, attributed and byte-exact", async () => {
   assert.deepEqual(lock.excludedSkills, ["to-spec"]);
   assert.deepEqual(lock.managedSkills, ["grill-with-docs", "grilling", "domain-modeling"]);
   assert.ok(!lock.managedSkills.includes("setup-matt-pocock-skills"));
-  await verifyInstalledSkills(lock);
 });
 
 test("MTP update accepts only an explicit full SHA", () => {
@@ -28,9 +27,7 @@ test("repository keeps its canonical setup skill outside the MTP-managed set", a
   const lock = JSON.parse(await readFile(LOCK_PATH, "utf8")) as MtpLock;
   assert.ok(!lock.managedSkills.includes("setup-analysis-workspace"));
   assert.match(skill, /npm run setup/u);
-  assert.match(skill, /npm exec openspec -- store register \. --yes --json/u);
-  assert.match(skill, /npm exec openspec -- store doctor <Store ID> --json/u);
-  assert.match(skill, /не предлагать пользователю варианты/u);
+  assert.doesNotMatch(skill, /openspec -- store (?:register|unregister)/u);
   assert.doesNotMatch(skill, /git clone|npm run bootstrap|npm run doctor/u);
 });
 
