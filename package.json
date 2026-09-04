@@ -1,23 +1,26 @@
 {
   "name": "sdd-credit-calculator-product-meta-example",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "allowScripts": {
     "esbuild": true
   },
   "scripts": {
+    "setup": "tsx scripts/setup.ts",
     "doctor": "tsx scripts/doctor.ts",
     "bootstrap": "tsx scripts/bootstrap.ts",
+    "skills:install": "tsx scripts/sync-mtp-skills.ts install",
+    "skills:update": "tsx scripts/sync-mtp-skills.ts update",
+    "skills:check": "tsx scripts/sync-mtp-skills.ts check",
     "typecheck": "tsc --noEmit",
     "openspec:validate": "openspec validate --all --strict --no-interactive",
     "privacy:scan": "tsx scripts/privacy-scan.ts",
     "validate:structure": "tsx scripts/validate.ts",
-    "validate": "npm run check",
     "start": "tsx scripts/start.ts",
     "acceptance:http": "tsx scripts/http-acceptance.ts",
     "test": "tsx --test tests/*.test.ts",
-    "check": "npm run typecheck && npm test && npm run openspec:validate && npm run privacy:scan && npm run validate:structure"
+    "check": "npm run typecheck && npm test && npm run skills:check && npm run openspec:validate && npm run privacy:scan && npm run validate:structure"
   },
   "devDependencies": {
     "@fission-ai/openspec": "1.11.0",

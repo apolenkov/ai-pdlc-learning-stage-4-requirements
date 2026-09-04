@@ -1,0 +1,6 @@
+interface:
+  display_name: "Настроить среду анализа"
+  short_description: "Развернуть и проверить учебную рабочую среду"
+  default_prompt: "Используй $setup-analysis-workspace, чтобы развернуть и проверить эту учебную среду анализа."
+policy:
+  allow_implicit_invocation: false
