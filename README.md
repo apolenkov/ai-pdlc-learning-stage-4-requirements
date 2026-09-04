@@ -26,19 +26,14 @@ npm run start
 
 `npm run setup` запускается только из чистой копии. Команда последовательно выполняет preflight, проверяет закреплённые MTP skills, загружает сервис, повторно проверяет bootstrap и запускает полный локальный gate. Её можно безопасно выполнить ещё раз: версия, origin и чистота рабочей копии останутся прежними.
 
-Тот же путь можно поручить Codex: вызовите `$setup-analysis-workspace` в корне метарепозитория. Канонический skill уже находится в `.agents/skills/setup-analysis-workspace`, поэтому отдельно устанавливать его в шаблон не нужно. Он выполнит `npm ci`, дважды запустит `npm run setup` и проверит, что не появилось неожиданных изменений.
+Тот же путь можно поручить корпоративному агенту OpenCode. Откройте корень
+метарепозитория и отправьте сообщение: «Через встроенный инструмент `skill`
+загрузи project skill с ID `setup-analysis-workspace`. Разверни и проверь
+учебную среду; остановись после итогового отчёта setup». Skill уже находится в
+`.agents/skills/setup-analysis-workspace`, устанавливать его отдельно не нужно.
 
-Ручной запасной путь:
-
-```bash
-npm run doctor
-npm run skills:install
-npm run bootstrap
-npm run bootstrap
-npm run check
-```
-
-`npm run skills:install` устанавливает project-local MTP skills из закреплённого SHA, а `npm run bootstrap` загружает закреплённый сервис. Второй запуск `bootstrap` проверяет идемпотентность. `npm run check` выполняет TypeScript typecheck, тесты, проверку MTP provenance, строгую проверку OpenSpec, privacy/secret scan и структурную проверку.
+`npm run check` выполняет TypeScript typecheck, тесты, проверку MTP provenance,
+строгую проверку OpenSpec, privacy/secret scan и структурную проверку.
 
 Установка и обновление MTP выполняются только через npm:
 
@@ -75,6 +70,70 @@ CONTEXT/product/lock → grill-with-docs или grill-me
                      → OpenSpec Propose → проверка человеком
                      → отдельный OpenSpec Apply
 ```
+
+## Эталонная multi-repo-схема OpenSpec
+
+Этот репозиторий является OpenSpec Store: его `openspec/` содержит общие
+спецификации и Changes, а имя и удалённый адрес Store зафиксированы в
+`.openspec-store/store.yaml`. Код сервиса находится в отдельном репозитории.
+
+В `openspec/config.yaml` выбрана стандартная схема
+[`spec-driven`](https://openspec.dev/docs/schemas/spec-driven): `proposal.md`
+фиксирует зачем и что меняется, delta specs — наблюдаемое поведение,
+`design.md` — необходимые технические решения, `tasks.md` — проверяемую
+работу. Для изменения `limit-credit-amount` используется существующая
+capability `credit-calculator` в `Modified Capabilities`; новую capability
+придумывать не нужно.
+
+Для работы с кодом откройте Store и отдельный рабочий клон сервиса в одном
+редакторе через Workset. Закреплённый `.workspace/services/credit-calculator/`
+не редактируйте: это чистая проверочная копия из `services.lock.yaml`.
+Project skills OpenSpec для OpenCode уже находятся в `.opencode/skills/`.
+
+Однократно на машине:
+
+Клонируйте сервис рядом с метарепозиторием, затем из корня метарепозитория
+выполните команды ниже. Они не содержат входного SHA: разработка начинается с
+актуальной `main`, а точный SHA фиксируется после merge.
+
+```bash
+cd ..
+git clone https://github.com/apolenkov/sdd-guide-credit-calculator-stage-3.git
+cd sdd-credit-calculator-product-meta-example
+npm exec openspec -- store register .
+npm exec openspec -- store doctor sdd-credit-calculator-product-meta
+npm exec openspec -- workset create credit-calculator \
+  --member service=../sdd-credit-calculator-example \
+  --member meta-store=. \
+  --tool code
+```
+
+Перед работой:
+
+```bash
+npm exec openspec -- workset open credit-calculator
+npm exec openspec -- status --all --store sdd-credit-calculator-product-meta
+```
+
+Workset открывает обе папки в VS Code. Для планирования запустите OpenCode из
+корня метарепозитория. Для Apply запустите его в терминале участника `service`:
+корневой `openspec/config.yaml` сервиса разрешает этот Store, а код меняется в
+правильной Git-истории. Для Workset используйте только `--tool code`: OpenSpec
+1.12 не умеет запускать OpenCode как opener.
+
+Store и сервис живут в разных Git-историях: сначала ревью и Change в Store,
+затем реализация и тесты в рабочем клоне сервиса. После merge сервиса обновите
+его полный SHA в `services.lock.yaml` отдельным изменением Store и проверьте
+свежим клоном `npm run setup`. OpenSpec не клонирует, не pull-ит и не push-ит
+репозитории автоматически.
+
+Workset — локальный список папок: он хранится вне участников и не изменяет их.
+Команды `npm exec openspec -- workset list` и
+`npm exec openspec -- workset remove credit-calculator` управляют только этим
+локальным списком. Store и Workset сейчас beta; если команда или формат
+изменятся, сверяйтесь с официальной документацией OpenSpec.
+
+Краткая схема и ограничения: `docs/architecture/openspec-store-workset.md`.
 
 
 ## Роли

@@ -11,6 +11,29 @@ test("lock pins a full SHA and ignored workspace", async () => {
   assert.match(lock, /workspace:\s*\.workspace\/services\/credit-calculator/);
 });
 
+test("OpenSpec Store identity is committed and points to this meta repository", async () => {
+  const store = await readFile(resolve(root, ".openspec-store/store.yaml"), "utf8");
+  assert.match(store, /^version:\s*1$/m);
+  assert.match(store, /^id:\s*sdd-credit-calculator-product-meta$/m);
+  assert.match(store, /remote:\s*https:\/\/github\.example\.invalid\/apolenkov\/sdd-credit-calculator-product-meta-example\.git/);
+});
+
+test("OpenCode receives the Store-aware OpenSpec workflows from the repository", async () => {
+  for (const skill of ["openspec-propose", "openspec-apply-change", "openspec-archive-change"]) {
+    const content = await readFile(resolve(root, ".opencode", "skills", skill, "SKILL.md"), "utf8");
+    assert.match(content, /Store selection:/);
+    assert.match(content, /generatedBy:\s*"1\.12\.0"/);
+  }
+});
+
+test("Store and Workset architecture keeps pinned workspace read-only", async () => {
+  const architecture = await readFile(resolve(root, "docs/architecture/openspec-store-workset.md"), "utf8");
+  assert.match(architecture, /канонический OpenSpec Store/);
+  assert.match(architecture, /не рабочая директория/);
+  assert.match(architecture, /writable service clone/);
+  assert.match(architecture, /services\.lock\.yaml/);
+});
+
 test("context remains a domain glossary", async () => {
   const context = await readFile(resolve(root, "CONTEXT.md"), "utf8");
   assert.match(context, /Кредитный калькулятор/);
