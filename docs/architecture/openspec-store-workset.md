@@ -63,12 +63,12 @@ flowchart TB
 
 ### Подготовьте две рабочие ветки
 
-Из чистого корня метарепозитория после принятия planning PR:
+Из чистого корня метарепозитория после принятия planning PR продолжите его персональную ветку. Учебный planning PR закрыт без слияния, поэтому Change находится в этой ветке, а не в общей main. Замените `your_login` своим GitHub-логином; если выбрали другое имя ветки, используйте его:
 
 ```bash
-git switch main
+git switch feature/your_login/limit-credit-amount
 git pull --ff-only
-git switch -c feature/limit-credit-amount-delivery
+git switch -c feature/your_login/limit-credit-amount-delivery
 ```
 
 Если сервиса рядом ещё нет:
@@ -83,7 +83,7 @@ git clone https://github.com/apolenkov/sdd-guide-credit-calculator-stage-3.git .
 cd ../sdd-credit-calculator-example
 git switch main
 git pull --ff-only
-git switch -c feature/limit-credit-amount
+git switch -c feature/your_login/limit-credit-amount
 npm ci
 ```
 
@@ -116,7 +116,7 @@ npm exec openspec -- store doctor sdd-credit-calculator-product-meta
 Из корня сервиса откройте OpenCode и отправьте:
 
 ```text
-Подготовь переход только текущей ветки feature/limit-credit-amount
+Подготовь переход только текущей персональной учебной ветки
 к Store sdd-credit-calculator-product-meta.
 Сначала сравни локальные specs и историю Changes с этим Store.
 Покажи, какие требования и история уже сохранены, чего не хватает
