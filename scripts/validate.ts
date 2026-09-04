@@ -11,7 +11,7 @@ const exists = async (path: string) => access(path).then(() => true).catch(() =>
 
 try {
   const lock = await readLock();
-  for (const file of ["AGENTS.md", "CONTEXT.md", "README.md", "product.yaml", "services.lock.yaml", "openspec/specs/credit-calculator/spec.md", ".agents/mtp-skills.lock.json", ".agents/skills/grill-with-docs/SKILL.md", ".agents/skills/domain-modeling/SKILL.md", ".agents/skills/setup-analysis-workspace/SKILL.md", "docs/agents/domain.md"]) {
+  for (const file of ["AGENTS.md", "CONTEXT.md", "README.md", "product.yaml", "services.lock.yaml", "openspec/specs/credit-calculator/spec.md", ".agents/mtp-skills.lock.json", ".agents/skills/grill-with-docs/SKILL.md", ".agents/skills/domain-modeling/SKILL.md", ".agents/skills/setup-analysis-workspace/SKILL.md"]) {
     await access(resolve(root, file));
   }
   if (await exists(resolve(root, "skills/domain-clarification/SKILL.md"))) throw new Error("custom domain-clarification skill must be removed in favor of MTP skills");

@@ -10,7 +10,6 @@ export const setupSteps = [
   { phase: "preflight", script: "doctor" },
   { phase: "preflight", script: "skills:check" },
   { phase: "setup", script: "bootstrap" },
-  { phase: "verify", script: "bootstrap" },
   { phase: "verify", script: "check" },
 ] as const;
 

@@ -9,10 +9,9 @@ test("MTP skills are pinned, complete, attributed and byte-exact", async () => {
   assert.equal(lock.source, MTP_SOURCE);
   assert.match(lock.commit, /^[0-9a-f]{40}$/u);
   assert.equal(lock.license.type, "MIT");
-  assert.deepEqual(lock.rootSkills, ["grill-me", "grill-with-docs"]);
+  assert.deepEqual(lock.rootSkills, ["grill-with-docs"]);
   assert.deepEqual(lock.excludedSkills, ["to-spec"]);
-  assert.ok(lock.managedSkills.includes("domain-modeling"));
-  assert.ok(lock.managedSkills.includes("prototype"));
+  assert.deepEqual(lock.managedSkills, ["grill-with-docs", "grilling", "domain-modeling"]);
   assert.ok(!lock.managedSkills.includes("setup-matt-pocock-skills"));
   await verifyInstalledSkills(lock);
 });
@@ -29,5 +28,14 @@ test("repository keeps its canonical setup skill outside the MTP-managed set", a
   const lock = JSON.parse(await readFile(LOCK_PATH, "utf8")) as MtpLock;
   assert.ok(!lock.managedSkills.includes("setup-analysis-workspace"));
   assert.match(skill, /npm run setup/u);
+  assert.match(skill, /npm exec openspec -- store register \. --yes --json/u);
+  assert.match(skill, /npm exec openspec -- store doctor <Store ID> --json/u);
+  assert.match(skill, /не предлагать пользователю варианты/u);
   assert.doesNotMatch(skill, /git clone|npm run bootstrap|npm run doctor/u);
+});
+
+test("temporary Store acceptance is isolated from the user registry", async () => {
+  const agents = await readFile(new URL("../AGENTS.md", import.meta.url), "utf8");
+  assert.match(agents, /acceptance-checkout[\s\S]*временн\S+ `XDG_DATA_HOME`/u);
+  assert.match(agents, /Не регистрируйте временный checkout в пользовательском реестре OpenSpec/u);
 });

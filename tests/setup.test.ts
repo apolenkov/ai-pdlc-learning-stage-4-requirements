@@ -9,6 +9,7 @@ test("setup runs the repository-owned preflight, setup and verify sequence", asy
   await setupWorkspace(async (script) => { calls.push(script); }, async () => statuses.shift() ?? "");
 
   assert.deepEqual(calls, setupSteps.map((step) => step.script));
+  assert.equal(calls.filter((script) => script === "bootstrap").length, 1);
 });
 
 test("setup rejects unexpected repository changes", async () => {

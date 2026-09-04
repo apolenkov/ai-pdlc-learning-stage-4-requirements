@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -18,6 +18,15 @@ test("OpenSpec Store identity is committed and points to this meta repository", 
   assert.match(store, /remote:\s*https:\/\/github\.example\.invalid\/apolenkov\/sdd-credit-calculator-product-meta-example\.git/);
 });
 
+test("Store setup uses the official CLI without a custom wrapper", async () => {
+  const packageJson = await readFile(resolve(root, "package.json"), "utf8");
+  const skill = await readFile(resolve(root, ".agents/skills/setup-analysis-workspace/SKILL.md"), "utf8");
+  await assert.rejects(access(resolve(root, "scripts/store.ts")));
+  assert.doesNotMatch(packageJson, /store:ensure/u);
+  assert.match(skill, /npm exec openspec -- store register \. --yes --json/u);
+  assert.match(skill, /npm exec openspec -- store doctor <Store ID> --json/u);
+});
+
 test("OpenCode receives the Store-aware OpenSpec workflows from the repository", async () => {
   for (const skill of ["openspec-propose", "openspec-apply-change", "openspec-archive-change"]) {
     const content = await readFile(resolve(root, ".opencode", "skills", skill, "SKILL.md"), "utf8");
@@ -30,7 +39,10 @@ test("Store and Workset architecture keeps pinned workspace read-only", async ()
   const architecture = await readFile(resolve(root, "docs/architecture/openspec-store-workset.md"), "utf8");
   assert.match(architecture, /канонический OpenSpec Store/);
   assert.match(architecture, /не рабочая директория/);
-  assert.match(architecture, /writable service clone/);
+  assert.match(architecture, /```mermaid[\s\S]*flowchart TB/u);
+  assert.match(architecture, /Поток изменения[\s\S]*Локальная среда/u);
+  assert.match(architecture, /рабочий клон сервиса/);
+  assert.match(architecture, /Что это[\s\S]*Зачем нужен/u);
   assert.match(architecture, /services\.lock\.yaml/);
 });
 
