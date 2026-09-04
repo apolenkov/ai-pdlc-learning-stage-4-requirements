@@ -16,6 +16,14 @@
 
 OpenSpec — единственный источник спецификации. MTP `to-spec` не используется. Не создавайте локальный process skill, пересказывающий MTP или OpenSpec.
 
+## OpenSpec Store и реализация сервиса
+
+- Этот репозиторий — Store `sdd-credit-calculator-product-meta`; identity хранится в `.openspec-store/store.yaml`.
+- Store владеет общей спецификацией и Change. Репозиторий сервиса владеет кодом, тестами и своей Git-историей; второй продуктовый Change там не создавайте.
+- Для Apply используйте Workset с этим Store и отдельным рабочим клоном сервиса. `.workspace/services/credit-calculator` — только закреплённый снимок для анализа, изменять его нельзя.
+- После merge service PR обновите `services.lock.yaml` полным итоговым SHA отдельным Store PR. Проверяйте новый состав через свежий чистый клон, затем архивируйте Change.
+- Store и Workset не выполняют Git clone, pull, push или merge автоматически.
+
 ## Настройка учебной среды
 
 - Канонический skill `.agents/skills/setup-analysis-workspace` входит в шаблон метарепозитория и вызывает только его публичный контракт `npm run setup`.

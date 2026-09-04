@@ -1,0 +1,3 @@
+version: 1
+id: sdd-credit-calculator-product-meta
+remote: https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git
