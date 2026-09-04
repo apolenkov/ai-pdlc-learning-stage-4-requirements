@@ -2,8 +2,26 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { readLock } from "../scripts/config.js";
 
 const root = resolve(import.meta.dirname, "..");
+test("Store checks do not require or execute the service", async () => {
+  const pkg = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
+  assert.equal(pkg.scripts.setup, "npm run doctor && npm run check");
+  assert.equal(pkg.scripts.check, "npm run typecheck && npm test && npm run skills:check && npm run openspec:validate && npm run privacy:scan");
+  for (const script of ["start", "acceptance:http", "validate:structure", "contract:check"]) {
+    assert.equal(pkg.scripts[script], undefined);
+  }
+  await readLock();
+  for (const file of ["AGENTS.md", "CONTEXT.md", "README.md", "product.yaml", "openspec/specs/credit-calculator/spec.md", ".agents/skills/grill-with-docs/SKILL.md", ".agents/skills/domain-modeling/SKILL.md"]) {
+    await access(resolve(root, file));
+  }
+  const { stdout } = await promisify(execFile)("git", ["ls-files", ".workspace"], { cwd: root });
+  assert.equal(stdout.trim(), "", "service snapshot must not be tracked");
+});
+
 test("lock pins a full SHA and ignored workspace", async () => {
   const lock = await readFile(resolve(root, "services.lock.yaml"), "utf8");
   assert.match(lock, /repository:\s*https:\/\/\S+/);
@@ -23,8 +41,9 @@ test("Store setup uses the official CLI without a custom wrapper", async () => {
   const skill = await readFile(resolve(root, ".agents/skills/setup-analysis-workspace/SKILL.md"), "utf8");
   await assert.rejects(access(resolve(root, "scripts/store.ts")));
   assert.doesNotMatch(packageJson, /store:ensure/u);
-  assert.match(skill, /npm exec openspec -- store register \. --yes --json/u);
-  assert.match(skill, /npm exec openspec -- store doctor <Store ID> --json/u);
+  assert.match(skill, /npm ci/u);
+  assert.match(skill, /npm run setup/u);
+  assert.doesNotMatch(skill, /openspec -- store (?:register|unregister)/u);
 });
 
 test("OpenCode receives the Store-aware OpenSpec workflows from the repository", async () => {
@@ -40,9 +59,9 @@ test("Store and Workset architecture keeps pinned workspace read-only", async ()
   assert.match(architecture, /канонический OpenSpec Store/);
   assert.match(architecture, /не рабочая директория/);
   assert.match(architecture, /```mermaid[\s\S]*flowchart TB/u);
-  assert.match(architecture, /Поток изменения[\s\S]*Локальная среда/u);
+  assert.match(architecture, /Обязательный путь аналитика[\s\S]*Необязательное продолжение/u);
   assert.match(architecture, /рабочий клон сервиса/);
-  assert.match(architecture, /Что это[\s\S]*Зачем нужен/u);
+  assert.match(architecture, /Не сливать смену ownership в main учебного шаблона/u);
   assert.match(architecture, /services\.lock\.yaml/);
 });
 
@@ -52,6 +71,11 @@ test("context remains a domain glossary", async () => {
   assert.match(context, /## Язык/);
   assert.match(context, /_Избегать_:/);
   assert.doesNotMatch(context, /TypeScript|npm install|Makefile|git clone/);
+  assert.match(context, /openspec\/specs\/credit-calculator\/spec\.md/);
+  assert.doesNotMatch(context, /не могут быть отрицательными|должен быть положительным|округлённый до целого|сумма делится на срок/);
+  const product = await readFile(resolve(root, "product.yaml"), "utf8");
+  assert.doesNotMatch(product, /^workspace:/m);
+  assert.match(product, /^service_lock: services\.lock\.yaml$/m);
 });
 
 test("generated and local artifacts stay outside Git", async () => {
