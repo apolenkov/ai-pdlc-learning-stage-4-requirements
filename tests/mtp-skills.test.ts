@@ -28,7 +28,9 @@ test("repository keeps its canonical setup skill outside the MTP-managed set", a
   assert.ok(!lock.managedSkills.includes("setup-analysis-workspace"));
   assert.match(skill, /npm run setup/u);
   assert.doesNotMatch(skill, /openspec -- store (?:register|unregister)/u);
-  assert.doesNotMatch(skill, /git clone|npm run bootstrap|npm run doctor/u);
+  assert.doesNotMatch(skill, /git clone|npm run doctor/u);
+  assert.match(skill, /аналитик начинает с `npm run bootstrap`/u);
+  assert.match(skill, /original project skill `grill-with-docs`/u);
 });
 
 test("temporary Store acceptance is isolated from the user registry", async () => {
