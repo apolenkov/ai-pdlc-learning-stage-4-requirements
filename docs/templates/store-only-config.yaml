@@ -1,0 +1,7 @@
+schema: spec-driven
+store: sdd-credit-calculator-product-meta
+context: |
+  Эта персональная delivery-ветка содержит только код и runtime-тесты сервиса.
+  Baseline, унаследованный add-reset-and-years-term и зависимый
+  limit-credit-amount принадлежат Store sdd-credit-calculator-product-meta.
+  Общая main учебного шаблона остаётся repo-local.

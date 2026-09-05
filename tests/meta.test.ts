@@ -46,6 +46,24 @@ test("Store setup uses the official CLI without a custom wrapper", async () => {
   assert.doesNotMatch(skill, /openspec -- store (?:register|unregister)/u);
 });
 
+test("analyst entry starts in an organizer-prepared local meta directory", async () => {
+  const readme = await readFile(resolve(root, "README.md"), "utf8");
+  const contributing = await readFile(resolve(root, "CONTRIBUTING.md"), "utf8");
+  const organizer = await readFile(resolve(root, "docs/organizer-stage-4.md"), "utf8");
+  assert.match(readme, /подготовленную организатором личную/u);
+  assert.match(readme, /npm run bootstrap[\s\S]*?opencode/u);
+  assert.match(readme, /Аналитик не выполняет clone, `npm ci`, `npm run setup`, регистрацию Store или импорт контракта/u);
+  assert.match(readme, /course\/your_login\/stage-4-import-base/u);
+  assert.match(readme, /course\/your_login\/stage-4-amount-limits/u);
+  assert.match(readme, /два человеческих review/u);
+  assert.match(readme, /закройте PR без слияния/u);
+  assert.match(readme, /все задачи реализации остаются `- \[ \]`/u);
+  assert.match(contributing, /Node\.js 22\+, npm и OpenCode с корпоративной аутентификацией/u);
+  assert.match(organizer, /npm run bootstrap\n+npm run bootstrap/u);
+  assert.match(organizer, /Не выполняйте unregister\/remove/u);
+  assert.match(organizer, /не должен исправлять неполный или изменённый импорт, чужой baseline, грязный либо закреплённый на другом SHA snapshot/u);
+});
+
 test("OpenCode receives the Store-aware OpenSpec workflows from the repository", async () => {
   for (const skill of ["openspec-propose", "openspec-apply-change", "openspec-archive-change"]) {
     const content = await readFile(resolve(root, ".opencode", "skills", skill, "SKILL.md"), "utf8");
@@ -56,13 +74,50 @@ test("OpenCode receives the Store-aware OpenSpec workflows from the repository",
 
 test("Store and Workset architecture keeps pinned workspace read-only", async () => {
   const architecture = await readFile(resolve(root, "docs/architecture/openspec-store-workset.md"), "utf8");
-  assert.match(architecture, /канонический OpenSpec Store/);
-  assert.match(architecture, /не рабочая директория/);
-  assert.match(architecture, /```mermaid[\s\S]*flowchart TB/u);
-  assert.match(architecture, /Обязательный путь аналитика[\s\S]*Необязательное продолжение/u);
-  assert.match(architecture, /рабочий клон сервиса/);
-  assert.match(architecture, /Не сливать смену ownership в main учебного шаблона/u);
-  assert.match(architecture, /services\.lock\.yaml/);
+  assert.match(architecture, /единственным активным владельцем/u);
+  assert.match(architecture, /\.workspace\/services\/credit-calculator.*read-only/u);
+  assert.match(architecture, /```mermaid[\s\S]*flowchart LR/u);
+  assert.match(architecture, /Подготовленный путь аналитика[\s\S]*Store-only только в персональной ветке сервиса/u);
+  assert.match(architecture, /Общая `main` R3 остаётся repo-local/u);
+  assert.match(architecture, /add-reset-and-years-term[\s\S]*limit-credit-amount/u);
+});
+
+test("stage 4 preserves the inherited active Change and adds a dependent pending Change", async () => {
+  const [readme, transfer, traceability, config] = await Promise.all([
+    readFile(resolve(root, "README.md"), "utf8"),
+    readFile(resolve(root, "docs/templates/stage-3-transfer.md"), "utf8"),
+    readFile(resolve(root, "docs/templates/requirements-traceability.md"), "utf8"),
+    readFile(resolve(root, "openspec/config.yaml"), "utf8"),
+  ]);
+  assert.match(readme, /весь.*add-reset-and-years-term/u);
+  assert.match(readme, /10 000 ₽.*100 000 000 ₽.*включительно/u);
+  assert.match(readme, /9 999 ₽.*100 000 001 ₽.*отклоняются/u);
+  assert.match(readme, /original MTP grill/u);
+  assert.match(readme, /Explore[\s\S]*Propose/u);
+  assert.match(readme, /не запускай Apply/u);
+  assert.match(transfer, /Полный SHA принятого результата/u);
+  assert.match(transfer, /задачи переключателя «месяцы \/ годы».*reset в обоих режимах остались `- \[ \]`/u);
+  assert.match(traceability, /переключатель `месяцы \/ годы` не запускает расчёт/u);
+  assert.match(traceability, /reset работает в обоих режимах/u);
+  assert.match(readme, /точный inventory и байты.*Git tree/u);
+  assert.match(traceability, /add-reset-and-years-term[\s\S]*limit-credit-amount/u);
+  assert.match(traceability, /pending implementation/g);
+  assert.match(config, /limit-credit-amount.*add-reset-and-years-term/u);
+});
+
+test("all Store reads use explicit root checks and the service workspace stays read-only", async () => {
+  const [readme, organizer, architecture] = await Promise.all([
+    readFile(resolve(root, "README.md"), "utf8"),
+    readFile(resolve(root, "docs/organizer-stage-4.md"), "utf8"),
+    readFile(resolve(root, "docs/architecture/openspec-store-workset.md"), "utf8"),
+  ]);
+  for (const content of [readme, organizer, architecture]) {
+    assert.match(content, /--store sdd-credit-calculator-product-meta/u);
+  }
+  assert.match(readme, /store doctor sdd-credit-calculator-product-meta --json/u);
+  assert.match(readme, /\.workspace\/services\/credit-calculator.*только для чтения/u);
+  assert.match(organizer, /git -C \.\.\/sdd-credit-calculator-example archive <FULL_R3_SHA>/u);
+  assert.match(organizer, /test ! -e openspec\/changes\/add-reset-and-years-term/u);
 });
 
 test("context remains a domain glossary", async () => {

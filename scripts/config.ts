@@ -10,8 +10,8 @@ export interface ServiceLock {
   workspace: string;
 }
 
-export async function readLock(): Promise<ServiceLock> {
-  const text = await readFile(lockPath, "utf8");
+export async function readLock(projectRoot = root): Promise<ServiceLock> {
+  const text = await readFile(resolve(projectRoot, "services.lock.yaml"), "utf8");
   const repository = text.match(/repository:\s*(\S+)/)?.[1];
   const commit = text.match(/commit:\s*([0-9a-f]{40})\b/)?.[1];
   const workspace = text.match(/workspace:\s*(\S+)/)?.[1];
