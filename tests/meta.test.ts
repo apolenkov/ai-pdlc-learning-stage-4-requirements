@@ -133,7 +133,20 @@ test("stage 4 preserves the inherited planning contract before the dependent Cha
       assert.match(transfer, new RegExp(change, "u"));
       assert.match(traceability, new RegExp(change, "u"));
     }
-    assert.equal(traceability.match(/pending implementation/g)?.length, 8);
+    for (const requirement of [
+      "Платёж и округление",
+      "Проверка ввода и очистка прежнего платежа",
+      "Срок и переключатель `месяцы / годы`",
+      "Перевод лет",
+      "Reset",
+      "Локальность и отсутствие хранения",
+      "Общая сумма и переплата",
+      "Согласованное состояние трёх результатов",
+    ]) {
+      const row = traceability.split("\n").find((line) => line.startsWith(`| ${requirement} |`));
+      assert.ok(row, `missing traceability row: ${requirement}`);
+      assert.match(row, /pending implementation/u);
+    }
     assert.match(config, /Для limit-credit-amount явно указывать зависимость/u);
     assert.match(config, /add-reset-and-years-term/u);
     assert.match(config, /add-payment-summary/u);
