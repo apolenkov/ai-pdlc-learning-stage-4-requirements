@@ -1,12 +1,117 @@
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { access, readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
 import type { ServiceLock } from "./config.js";
+import { assertPinnedWorkspace } from "./workspace.js";
 
-const inheritedChange = "add-reset-and-years-term";
-const baselinePath = "openspec/specs/credit-calculator/spec.md";
+const provenancePath = "docs/course/planning-provenance.json";
+const expectedMainSpecsRoot = "openspec/specs";
+const expectedPlanningWorkspace = ".workspace/planning/stage-3";
 const run = promisify(execFile);
+
+export type PlanningProvenance = Readonly<{
+  schemaVersion: 1;
+  source: Readonly<{
+    repository: string;
+    commit: string;
+    workspace: typeof expectedPlanningWorkspace;
+  }>;
+  imports: Readonly<{
+    mainSpecsRoot: typeof expectedMainSpecsRoot;
+    activeChanges: readonly string[];
+  }>;
+  files: readonly Readonly<{
+    path: string;
+    blob: string;
+    sha256: string;
+  }>[];
+}>;
+
+type SourceTreeFile = Readonly<{ path: string; blob: string }>;
+
+const sha256 = (content: Buffer): string => createHash("sha256").update(content).digest("hex");
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function assertSortedUnique(values: readonly string[], label: string): void {
+  const expected = [...new Set(values)].sort();
+  if (JSON.stringify(values) !== JSON.stringify(expected)) {
+    throw new Error(`${provenancePath}: ${label} must be sorted and unique`);
+  }
+}
+
+function assertSafePath(path: string, label: string): void {
+  if (!path || path.startsWith("/") || path.includes("\\")
+    || path.split("/").some((part) => !part || part === "." || part === "..")) {
+    throw new Error(`${provenancePath}: unsafe ${label}: ${path}`);
+  }
+}
+
+export async function readPlanningProvenance(projectRoot: string): Promise<PlanningProvenance> {
+  const text = await readFile(resolve(projectRoot, provenancePath), "utf8").catch(() => {
+    throw new Error(`prepared course context is missing ${provenancePath}; ask the organizer to complete the personal import base`);
+  });
+  let value: unknown;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    throw new Error(`${provenancePath}: invalid JSON`);
+  }
+  if (!isRecord(value) || value.schemaVersion !== 1 || !isRecord(value.source)
+    || !isRecord(value.imports) || !Array.isArray(value.files)) {
+    throw new Error(`${provenancePath}: unsupported planning provenance contract`);
+  }
+
+  const { source, imports } = value;
+  if (typeof source.repository !== "string" || !/^https:\/\/\S+$/u.test(source.repository)) {
+    throw new Error(`${provenancePath}: planning source repository must use HTTPS`);
+  }
+  if (typeof source.commit !== "string" || !/^[0-9a-f]{40}$/u.test(source.commit)) {
+    throw new Error(`${provenancePath}: planning source commit must be a full lowercase Git SHA`);
+  }
+  if (source.workspace !== expectedPlanningWorkspace) {
+    throw new Error(`${provenancePath}: planning source workspace must be ${expectedPlanningWorkspace}`);
+  }
+  if (imports.mainSpecsRoot !== expectedMainSpecsRoot || !Array.isArray(imports.activeChanges)
+    || !imports.activeChanges.every((name) => typeof name === "string" && /^[a-z0-9][a-z0-9-]*$/u.test(name) && name !== "archive")) {
+    throw new Error(`${provenancePath}: invalid planning import roots`);
+  }
+  assertSortedUnique(imports.activeChanges, "imports.activeChanges");
+  if (imports.activeChanges.length === 0) {
+    throw new Error(`${provenancePath}: at least one active Change is required`);
+  }
+
+  const files = value.files.map((entry, index) => {
+    if (!isRecord(entry) || typeof entry.path !== "string" || typeof entry.blob !== "string"
+      || typeof entry.sha256 !== "string") {
+      throw new Error(`${provenancePath}: invalid files[${index}]`);
+    }
+    assertSafePath(entry.path, `files[${index}].path`);
+    if (!/^[0-9a-f]{40}$/u.test(entry.blob) || !/^[0-9a-f]{64}$/u.test(entry.sha256)) {
+      throw new Error(`${provenancePath}: invalid hashes for ${entry.path}`);
+    }
+    return { path: entry.path, blob: entry.blob, sha256: entry.sha256 };
+  });
+  assertSortedUnique(files.map(({ path }) => path), "files paths");
+
+  return {
+    schemaVersion: 1,
+    source: {
+      repository: source.repository,
+      commit: source.commit,
+      workspace: expectedPlanningWorkspace,
+    },
+    imports: {
+      mainSpecsRoot: expectedMainSpecsRoot,
+      activeChanges: imports.activeChanges as string[],
+    },
+    files,
+  };
+}
 
 async function requireFile(projectRoot: string, path: string): Promise<string> {
   const absolute = resolve(projectRoot, path);
@@ -19,72 +124,121 @@ async function requireFile(projectRoot: string, path: string): Promise<string> {
 function capturedSha(content: string, label: string): string {
   const expression = new RegExp(`${label}:\\s*\`?([0-9a-f]{40})\`?`, "u");
   const sha = content.match(expression)?.[1];
-  if (!sha) {
-    throw new Error(`docs/course/stage-3-transfer.md: missing full SHA for ${label}`);
-  }
+  if (!sha) throw new Error(`docs/course/stage-3-transfer.md: missing full SHA for ${label}`);
   return sha;
 }
 
-async function importedPlanningFiles(projectRoot: string, changeRoot: string): Promise<string[]> {
-  const changeFiles: string[] = [];
-
-  async function walk(directory: string, relativeDirectory: string): Promise<void> {
-    const entries = await readdir(resolve(projectRoot, directory), { withFileTypes: true });
-    for (const entry of entries) {
+async function walkFiles(projectRoot: string, rootPath: string): Promise<string[]> {
+  const files: string[] = [];
+  const visit = async (relativeDirectory: string): Promise<void> => {
+    const entries = await readdir(resolve(projectRoot, relativeDirectory), { withFileTypes: true }).catch(() => {
+      throw new Error(`prepared course context is missing ${relativeDirectory}; ask the organizer to complete the personal import base`);
+    });
+    for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
       const relativePath = `${relativeDirectory}/${entry.name}`;
-      if (entry.isDirectory()) {
-        await walk(`${directory}/${entry.name}`, relativePath);
-      } else if (entry.isFile()) {
-        changeFiles.push(relativePath);
-      } else {
-        throw new Error(`prepared course context contains unsupported entry ${relativePath}`);
-      }
+      if (entry.isDirectory()) await visit(relativePath);
+      else if (entry.isFile()) files.push(relativePath);
+      else throw new Error(`prepared course context contains unsupported entry ${relativePath}`);
     }
-  }
-
-  await walk(changeRoot, changeRoot);
-  return [baselinePath, ...changeFiles].sort();
+  };
+  await visit(rootPath);
+  return files;
 }
 
-async function assertImportedPlanningMatchesGitTree(
-  projectRoot: string,
-  sourceWorkspace: string,
-  lock: ServiceLock,
-  changeRoot: string,
-): Promise<void> {
+async function sourceTreeFiles(sourceWorkspace: string, commit: string): Promise<SourceTreeFile[]> {
   const { stdout } = await run(
     "git",
-    ["-C", sourceWorkspace, "ls-tree", "-r", "-z", lock.commit, "--", baselinePath, changeRoot],
+    ["-C", sourceWorkspace, "ls-tree", "-r", "-z", commit, "--", "openspec/specs", "openspec/changes"],
     { maxBuffer: 10 * 1024 * 1024 },
   );
-  const sourceFiles = new Map<string, string>();
-  for (const entry of stdout.split("\0").filter(Boolean)) {
+  return stdout.split("\0").filter(Boolean).map((entry) => {
     const match = entry.match(/^\d+ blob ([0-9a-f]{40})\t(.+)$/u);
     if (!match?.[1] || !match[2]) {
-      throw new Error(`locked service tree contains unsupported planning entry: ${entry}`);
+      throw new Error(`planning source tree contains unsupported entry: ${entry}`);
     }
-    sourceFiles.set(match[2], match[1]);
+    return { blob: match[1], path: match[2] };
+  }).sort((left, right) => left.path.localeCompare(right.path));
+}
+
+async function gitBlob(repository: string, blob: string): Promise<Buffer> {
+  const result = await run("git", ["-C", repository, "cat-file", "blob", blob], {
+    encoding: "buffer",
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  return Buffer.isBuffer(result.stdout) ? result.stdout : Buffer.from(result.stdout);
+}
+
+function equalList(actual: readonly string[], expected: readonly string[]): boolean {
+  return actual.length === expected.length && actual.every((value, index) => value === expected[index]);
+}
+
+async function assertImportedPlanningMatchesSource(
+  projectRoot: string,
+  sourceWorkspace: string,
+  provenance: PlanningProvenance,
+): Promise<void> {
+  await assertPinnedWorkspace(provenance.source, sourceWorkspace);
+  const treeFiles = await sourceTreeFiles(sourceWorkspace, provenance.source.commit);
+  const sourceChanges = [...new Set(treeFiles.flatMap(({ path }) => {
+    const match = path.match(/^openspec\/changes\/([^/]+)\//u);
+    return match?.[1] && match[1] !== "archive" ? [match[1]] : [];
+  }))].sort();
+  if (!equalList(provenance.imports.activeChanges, sourceChanges)) {
+    throw new Error(`${provenancePath}: active Changes do not match planning source tree ${provenance.source.commit}; expected ${sourceChanges.join(", ") || "none"}`);
   }
 
-  const importedFiles = await importedPlanningFiles(projectRoot, changeRoot);
-  const sourceInventory = [...sourceFiles.keys()].sort();
-  const missing = sourceInventory.filter((path) => !importedFiles.includes(path));
-  const unexpected = importedFiles.filter((path) => !sourceFiles.has(path));
+  const importedPrefixes = [
+    `${provenance.imports.mainSpecsRoot}/`,
+    ...provenance.imports.activeChanges.map((name) => `openspec/changes/${name}/`),
+  ];
+  const sourceFiles = treeFiles.filter(({ path }) => importedPrefixes.some((prefix) => path.startsWith(prefix)));
+  const manifestPaths = provenance.files.map(({ path }) => path);
+  const sourcePaths = sourceFiles.map(({ path }) => path);
+  if (!equalList(manifestPaths, sourcePaths)) {
+    const manifestSet = new Set(manifestPaths);
+    const sourceSet = new Set(sourcePaths);
+    const missing = sourcePaths.filter((path) => !manifestSet.has(path));
+    const unexpected = manifestPaths.filter((path) => !sourceSet.has(path));
+    const details = [
+      missing.length ? `missing manifest files: ${missing.join(", ")}` : "",
+      unexpected.length ? `unexpected manifest files: ${unexpected.join(", ")}` : "",
+    ].filter(Boolean).join("; ");
+    throw new Error(`${provenancePath}: file inventory does not match planning source tree ${provenance.source.commit}: ${details}`);
+  }
+
+  const importedFiles = (
+    await Promise.all([
+      walkFiles(projectRoot, provenance.imports.mainSpecsRoot),
+      ...provenance.imports.activeChanges.map((name) => walkFiles(projectRoot, `openspec/changes/${name}`)),
+    ])
+  ).flat().sort();
+  const importedSet = new Set(importedFiles);
+  const missing = sourcePaths.filter((path) => !importedSet.has(path));
+  const unexpected = importedFiles.filter((path) => !sourcePaths.includes(path));
   if (missing.length || unexpected.length) {
     const details = [
       missing.length ? `missing imported files: ${missing.join(", ")}` : "",
       unexpected.length ? `unexpected imported files: ${unexpected.join(", ")}` : "",
     ].filter(Boolean).join("; ");
-    throw new Error(`imported planning inventory does not match locked service tree ${lock.commit}: ${details}`);
+    throw new Error(`imported planning inventory does not match planning source tree ${provenance.source.commit}: ${details}`);
   }
 
-  for (const path of importedFiles) {
+  const sourceByPath = new Map(sourceFiles.map((file) => [file.path, file]));
+  for (const manifestFile of provenance.files) {
+    const sourceFile = sourceByPath.get(manifestFile.path)!;
+    if (manifestFile.blob !== sourceFile.blob) {
+      throw new Error(`${provenancePath}: Git blob does not match planning source tree ${provenance.source.commit}: ${manifestFile.path}`);
+    }
+    const sourceBytes = await gitBlob(sourceWorkspace, sourceFile.blob);
+    if (sha256(sourceBytes) !== manifestFile.sha256) {
+      throw new Error(`${provenancePath}: SHA-256 does not match planning source blob ${sourceFile.blob}: ${manifestFile.path}`);
+    }
     const { stdout: importedBlob } = await run(
       "git",
-      ["-C", projectRoot, "hash-object", `--path=${path}`, "--", path],
+      ["-C", projectRoot, "hash-object", `--path=${manifestFile.path}`, "--", manifestFile.path],
     );
-    if (importedBlob.trim() !== sourceFiles.get(path)) {
-      throw new Error(`imported planning file differs from locked service tree ${lock.commit}: ${path}`);
+    if (importedBlob.trim() !== sourceFile.blob) {
+      throw new Error(`imported planning file differs from planning source tree ${provenance.source.commit}: ${manifestFile.path}`);
     }
   }
 }
@@ -93,51 +247,44 @@ export async function assertPreparedCourseContext(
   projectRoot: string,
   lock: ServiceLock,
   sourceWorkspace: string,
+  providedProvenance?: PlanningProvenance,
 ): Promise<void> {
+  const provenance = providedProvenance ?? await readPlanningProvenance(projectRoot);
   const transfer = await requireFile(projectRoot, "docs/course/stage-3-transfer.md");
   const traceability = await requireFile(projectRoot, "docs/course/requirements-traceability.md");
-  const baseline = await requireFile(projectRoot, baselinePath);
-  const changeRoot = `openspec/changes/${inheritedChange}`;
-  const [metadata, proposal, design, tasks, delta] = await Promise.all([
-    requireFile(projectRoot, `${changeRoot}/.openspec.yaml`),
-    requireFile(projectRoot, `${changeRoot}/proposal.md`),
-    requireFile(projectRoot, `${changeRoot}/design.md`),
-    requireFile(projectRoot, `${changeRoot}/tasks.md`),
-    requireFile(projectRoot, `${changeRoot}/specs/credit-calculator/spec.md`),
-  ]);
-
-  const sourceSha = capturedSha(transfer, "Полный SHA принятого результата");
+  const sourceSha = capturedSha(transfer, "Planning source SHA");
   const contextSha = capturedSha(transfer, "Service context SHA in `services.lock.yaml`");
-  if (sourceSha !== lock.commit || contextSha !== lock.commit) {
-    throw new Error(`prepared course context SHA ${sourceSha}/${contextSha} does not match services.lock.yaml ${lock.commit}`);
+  if (sourceSha !== provenance.source.commit) {
+    throw new Error(`prepared course context planning SHA ${sourceSha} does not match ${provenancePath} ${provenance.source.commit}`);
+  }
+  if (contextSha !== lock.commit) {
+    throw new Error(`prepared course context service SHA ${contextSha} does not match services.lock.yaml ${lock.commit}`);
+  }
+  if (!transfer.includes(provenance.source.repository)) {
+    throw new Error(`docs/course/stage-3-transfer.md does not name planning source repository ${provenance.source.repository}`);
   }
   if (/<[A-Z0-9_]+>/u.test(transfer)) {
     throw new Error("docs/course/stage-3-transfer.md still contains template placeholders");
   }
-  if (!transfer.includes(changeRoot) || !transfer.includes("openspec/specs/credit-calculator/spec.md")) {
-    throw new Error("docs/course/stage-3-transfer.md does not name the imported baseline and active Change paths");
+  for (const change of provenance.imports.activeChanges) {
+    const changeRoot = `openspec/changes/${change}`;
+    if (!transfer.includes(changeRoot)) {
+      throw new Error(`docs/course/stage-3-transfer.md does not name imported active Change path ${changeRoot}`);
+    }
+    if (!traceability.includes(change) || !traceability.includes("pending implementation")) {
+      throw new Error(`docs/course/requirements-traceability.md does not map pending imported Change ${change}`);
+    }
+    const tasks = await requireFile(projectRoot, `${changeRoot}/tasks.md`);
+    const pendingTasks = tasks.match(/^- \[ \]/gmu) ?? [];
+    if (pendingTasks.length === 0 || /- \[[xX]\]/u.test(tasks)) {
+      throw new Error(`${changeRoot}/tasks.md must keep all implementation tasks pending`);
+    }
   }
-  if (!traceability.includes(inheritedChange) || !traceability.includes("pending implementation")) {
-    throw new Error("docs/course/requirements-traceability.md does not map the inherited pending Change");
+  if (!transfer.includes(provenance.imports.mainSpecsRoot)) {
+    throw new Error(`docs/course/stage-3-transfer.md does not name imported main specs root ${provenance.imports.mainSpecsRoot}`);
   }
   if (/<(?:R3_SOURCE|INHERITED_SCENARIO|INHERITED_PENDING_TASK)>/u.test(traceability)) {
     throw new Error("docs/course/requirements-traceability.md still contains inherited-context placeholders");
   }
-  if (!traceability.includes("`месяцы / годы`")
-    || !traceability.includes("0,5→6")
-    || !traceability.includes("20→240")
-    || !traceability.includes("reset работает в обоих режимах")) {
-    throw new Error("docs/course/requirements-traceability.md does not preserve the inherited month/year and reset contract");
-  }
-  if (!baseline.includes("Ошибка очищает предыдущий результат")) {
-    throw new Error("imported baseline does not preserve the existing error-clearing scenario");
-  }
-  for (const [name, content] of Object.entries({ metadata, proposal, design, tasks, delta })) {
-    if (!content.trim()) throw new Error(`${changeRoot}/${name}.md is empty`);
-  }
-  const pendingTasks = tasks.match(/^- \[ \]/gmu) ?? [];
-  if (pendingTasks.length < 2 || /- \[[xX]\]/u.test(tasks)) {
-    throw new Error(`${changeRoot}/tasks.md must keep all implementation tasks pending`);
-  }
-  await assertImportedPlanningMatchesGitTree(projectRoot, sourceWorkspace, lock, changeRoot);
+  await assertImportedPlanningMatchesSource(projectRoot, sourceWorkspace, provenance);
 }
