@@ -7,8 +7,8 @@
 - доступны Git, Node.js 22+, npm и OpenCode с корпоративной аутентификацией;
 - выполнены `npm ci --include=dev` и `npm run setup`;
 - Store ID зарегистрирован именно на подготовленную папку, а конфликтующая регистрация не перезаписана;
-- baseline и весь активный `add-reset-and-years-term` импортированы из одного полного личного SHA R3;
-- `services.lock.yaml`, `docs/course/stage-3-transfer.md` и импортированные артефакты согласованы;
+- оба активных Change `add-reset-and-years-term` и `add-payment-summary` импортированы из полного личного SHA R3-ИИ; пустые main specs сохранены;
+- `docs/course/planning-provenance.json` и импортированные артефакты согласованы с planning Git tree, а `services.lock.yaml` независимо закрепляет контекст сервиса;
 - два запуска `npm run bootstrap` дают один закреплённый SHA и не меняют Git status;
 - человеческие review не подменены автоматической проверкой.
 

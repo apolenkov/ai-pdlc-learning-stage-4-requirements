@@ -1,12 +1,14 @@
 schema: spec-driven
 context: |
   Синтетический учебный продукт. Этот репозиторий является Store и единственным
-  активным владельцем импортированного baseline, унаследованного Change
-  add-reset-and-years-term и нового зависимого Change limit-credit-amount.
+  активным владельцем требований унаследованных Changes add-reset-and-years-term
+  и add-payment-summary и будущего зависимого Change limit-credit-amount.
+  Main specs личной базы пусты; runtime baseline не доказан. Происхождение
+  требований и версия контекста сервиса закреплены раздельно.
   Итог аналитической ступени — согласованные Changes без Apply и без изменения кода.
 rules:
   proposal:
-    - Для limit-credit-amount явно указывать зависимость от add-reset-and-years-term и provenance полного SHA.
+    - Для limit-credit-amount явно указывать зависимость от add-reset-and-years-term и add-payment-summary и provenance полного SHA.
   specs:
     - Диапазон 10 000–100 000 000 рублей включителен; соседние целые значения должны иметь ошибочные сценарии.
     - Сохранять ввод целого срока в месяцах; переключатель месяца/годы, перевод лет и reset в обоих режимах не объявлять реализованным поведением.
