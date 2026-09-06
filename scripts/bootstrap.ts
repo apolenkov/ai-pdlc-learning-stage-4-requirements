@@ -1,10 +1,13 @@
 import { execFile } from "node:child_process";
 import { access, mkdir, realpath, rename, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { promisify } from "node:util";
 import { readLock, root } from "./config.js";
-import { assertPreparedCourseContext } from "./course-context.js";
+import {
+  assertPreparedCourseContext,
+  readPlanningProvenance,
+} from "./course-context.js";
 import { assertPinnedWorkspace } from "./workspace.js";
 
 const run = promisify(execFile);
@@ -13,6 +16,9 @@ const storeId = "sdd-credit-calculator-product-meta";
 interface StoreList {
   stores?: Array<{ id?: string; root?: string }>;
 }
+
+type PinnedSource = Readonly<{ repository: string; commit: string; workspace: string }>;
+type PreparedWorkspace = Readonly<{ destination: string; temporary?: string }>;
 
 const exists = async (path: string) => access(path).then(() => true).catch(() => false);
 
@@ -67,6 +73,43 @@ export async function assertExpectedStoreRegistration(
   }
 }
 
+async function preparePinnedWorkspace(
+  projectRoot: string,
+  source: PinnedSource,
+  environment: NodeJS.ProcessEnv,
+): Promise<PreparedWorkspace> {
+  const destination = resolve(projectRoot, source.workspace);
+  if (await exists(resolve(destination, ".git"))) {
+    await assertPinnedWorkspace(source, destination);
+    return { destination };
+  }
+  if (await exists(destination)) {
+    throw new Error(`workspace path already exists and is not a Git checkout: ${source.workspace}; move it aside and retry`);
+  }
+
+  await mkdir(dirname(destination), { recursive: true });
+  const temporary = resolve(dirname(destination), `.${basename(destination)}.setup-${process.pid}`);
+  try {
+    await command("git", ["clone", "--filter=blob:none", "--no-checkout", source.repository, temporary], projectRoot, environment);
+    await command("git", ["-C", temporary, "fetch", "--depth", "1", "origin", source.commit], projectRoot, environment);
+    await command("git", ["-C", temporary, "cat-file", "-e", `${source.commit}^{commit}`], projectRoot, environment);
+    await command("git", ["-C", temporary, "checkout", "--detach", source.commit], projectRoot, environment);
+    await assertPinnedWorkspace(source, temporary);
+    return { destination, temporary };
+  } catch (error) {
+    await rm(temporary, { recursive: true, force: true });
+    throw new Error(`pinned source commit is unavailable: ${source.commit}; ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+async function removeTemporary(workspace: PreparedWorkspace | undefined): Promise<void> {
+  if (workspace?.temporary) await rm(workspace.temporary, { recursive: true, force: true });
+}
+
+async function publishPreparedWorkspace(workspace: PreparedWorkspace): Promise<void> {
+  if (workspace.temporary) await rename(workspace.temporary, workspace.destination);
+}
+
 export async function bootstrap(
   projectRoot = root,
   environment: NodeJS.ProcessEnv = process.env,
@@ -75,37 +118,23 @@ export async function bootstrap(
   await assertExpectedStoreRegistration(projectRoot, environment);
 
   const lock = await readLock(projectRoot);
-  const destination = resolve(projectRoot, lock.workspace);
-  if (await exists(resolve(destination, ".git"))) {
-    await assertPinnedWorkspace(lock, destination);
-    await assertPreparedCourseContext(projectRoot, lock, destination);
-    return `bootstrap: PASS — Store root ${storeId}; already at clean pinned workspace ${lock.commit}`;
-  }
-  if (await exists(destination)) {
-    throw new Error(`workspace path already exists and is not a Git checkout: ${lock.workspace}; move it aside and retry`);
-  }
-
-  const servicesRoot = resolve(projectRoot, ".workspace/services");
-  const temporaryDestination = resolve(servicesRoot, `.credit-calculator.setup-${process.pid}`);
-  await mkdir(servicesRoot, { recursive: true });
+  const provenance = await readPlanningProvenance(projectRoot);
+  let serviceWorkspace: PreparedWorkspace | undefined;
+  let planningWorkspace: PreparedWorkspace | undefined;
   try {
-    await command("git", ["clone", "--filter=blob:none", "--no-checkout", lock.repository, temporaryDestination], projectRoot, environment);
-    await command("git", ["-C", temporaryDestination, "fetch", "--depth", "1", "origin", lock.commit], projectRoot, environment);
-    await command("git", ["-C", temporaryDestination, "cat-file", "-e", `${lock.commit}^{commit}`], projectRoot, environment);
-    await command("git", ["-C", temporaryDestination, "checkout", "--detach", lock.commit], projectRoot, environment);
-    await assertPinnedWorkspace(lock, temporaryDestination);
+    planningWorkspace = await preparePinnedWorkspace(projectRoot, provenance.source, environment);
+    serviceWorkspace = await preparePinnedWorkspace(projectRoot, lock, environment);
+    await assertPreparedCourseContext(projectRoot, lock, planningWorkspace.temporary ?? planningWorkspace.destination, provenance);
+    await publishPreparedWorkspace(planningWorkspace);
+    await publishPreparedWorkspace(serviceWorkspace);
   } catch (error) {
-    await rm(temporaryDestination, { recursive: true, force: true });
-    throw new Error(`locked commit is unavailable: ${lock.commit}; ${error instanceof Error ? error.message : String(error)}`);
-  }
-  try {
-    await assertPreparedCourseContext(projectRoot, lock, temporaryDestination);
-    await rename(temporaryDestination, destination);
-  } catch (error) {
-    await rm(temporaryDestination, { recursive: true, force: true });
+    await Promise.all([removeTemporary(planningWorkspace), removeTemporary(serviceWorkspace)]);
     throw error;
   }
-  return `bootstrap: PASS — Store root ${storeId}; loaded source-only workspace ${lock.commit}; service dependencies were not installed`;
+  if (!planningWorkspace.temporary && !serviceWorkspace.temporary) {
+    return `bootstrap: PASS — Store root ${storeId}; already at clean pinned planning ${provenance.source.commit} and service ${lock.commit} workspaces`;
+  }
+  return `bootstrap: PASS — Store root ${storeId}; loaded read-only planning ${provenance.source.commit} and source-only service ${lock.commit} workspaces; dependencies were not installed`;
 }
 
 async function main(): Promise<void> {
