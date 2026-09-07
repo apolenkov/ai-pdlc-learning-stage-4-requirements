@@ -15,6 +15,17 @@ sdd-credit-calculator-product-meta-example/
 └── .workspace/services/...           контекст сервиса, только чтение
 ```
 
+Для будущей реализации готовый комплект R4 состоит из двух соседних рабочих папок:
+
+- `sdd-credit-calculator-product-meta-example/` — требования, планы Changes и задачи в `openspec/`.
+- `sdd-credit-calculator-stage-4-example/` — код в `src/` и тесты в `test/`.
+
+В папке кода `openspec/config.yaml` уже содержит указатель на Store `sdd-credit-calculator-product-meta`. Местных `openspec/specs/` и `openspec/changes/` там нет: для нового комплекта не нужно переносить или удалять старые требования. Указатель не клонирует product-meta и не регистрирует Store.
+
+Аналитическая ступень выполняется без рабочей папки кода. Разработчик клонирует её позже, после принятия требований и отдельного разрешения на реализацию. Существующие личные папки, ветки и service pins не заменяются автоматически.
+
+Точные команды приведены в [инструкции разработчика](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md).
+
 Planning SHA и service SHA фиксируют независимые роли: происхождение требований и версию кода для чтения. Репозитории и SHA могут совпасть, но service pin выбирают и проверяют отдельно, а не копируют из planning provenance. Код сервиса на этой ступени не меняется, Apply не запускается, задачи реализации остаются `- [ ]`.
 
 ## Два честных входа

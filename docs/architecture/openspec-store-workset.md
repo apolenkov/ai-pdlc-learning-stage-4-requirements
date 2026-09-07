@@ -45,29 +45,29 @@ Store identity хранится в `.openspec-store/store.yaml`. Регистр�
 
 Перед работой проверяются `store list --json` и `store doctor ... --json`. Если ID указывает на другой root, операция останавливается; автоматическая перерегистрация запрещена. Временные acceptance-checkout используют отдельный `XDG_DATA_HOME`.
 
-## Store-only только в персональной ветке сервиса
+## Готовый репозиторий кода R4
 
 Будущий разработчик работает с двумя соседними папками:
 
 ```text
 work/
   sdd-credit-calculator-product-meta-example/  # specs, Changes, tasks
-  sdd-credit-calculator-example/               # src и runtime-тесты
+  sdd-credit-calculator-stage-4-example/        # src и runtime-тесты
 ```
 
-После принятия обоих Changes разработчик создаёт персональную delivery-ветку сервиса. До удаления локальных planning-папок он сверяет source SHA, baseline, весь активный Change и Store. Только после подтверждённого переноса:
+После принятия полного фактического набора Changes разработчик клонирует новый репозиторий кода и создаёт личную ветку от SHA в согласованном `services.lock.yaml`. В новом комплекте:
 
-1. локальные `openspec/specs` и `openspec/changes` удаляются из персональной ветки сервиса;
-2. `openspec/config.yaml` заменяется проверенным [`store-only-config.yaml`](../templates/store-only-config.yaml) с `store: sdd-credit-calculator-product-meta`;
-3. команды с явным `--store` подтверждают ожидаемый root, все импортированные Changes и новый зависимый Change;
+1. местных `openspec/specs` и `openspec/changes` в сервисе уже нет; переносить или удалять старые требования не нужно;
+2. `openspec/config.yaml` уже содержит `store: sdd-credit-calculator-product-meta`;
+3. `npm exec openspec -- list --json` без `--store` подтверждает `root.source: declared`, нужную папку product-meta и фактический набор Changes;
 4. код и тесты меняются только в сервисном checkout; tasks — только в Store.
 
-Общая `main` R3 остаётся repo-local. Нельзя поддерживать Store и локальные папки как два редактируемых контракта или использовать `.workspace` для реализации.
+Общая `main` R3 остаётся repo-local и не меняется. Уже существующие личные пары и service pins не заменяются автоматически. Нельзя поддерживать Store и местные папки как два редактируемых контракта или использовать `.workspace` для реализации. Перед работой агенту явно разрешают доступ к обоим root и задают границы правок; указатель Store сам этих прав не даёт.
 
 ## Порядок реализации
 
 После отдельного разрешения разработчик определяет порядок реализации по явным зависимостям всех импортированных Changes и `limit-credit-amount`. Для каждого Change сначала читаются `status` и `instructions apply`, после проверки отмечаются только реально выполненные tasks.
 
-Полные команды и сообщения находятся в [`docs/developer-handoff.md` сервиса](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-3/blob/main/docs/developer-handoff.md). Commit, push, merge, обновление `services.lock.yaml` и архивирование Changes не выполняются Store или Workset автоматически.
+Полные команды и сообщения находятся в [`docs/developer-handoff.md` сервиса R4](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md). Commit, push, merge, обновление `services.lock.yaml` и архивирование Changes не выполняются Store или Workset автоматически.
 
 Workset остаётся необязательным списком папок; он не клонирует Git и не объединяет артефакты разных Changes.

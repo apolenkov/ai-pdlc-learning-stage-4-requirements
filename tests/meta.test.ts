@@ -160,7 +160,11 @@ test("Store and Workset architecture keeps pinned workspace read-only", async ()
   assert.match(architecture, /единственным активным владельцем/u);
   assert.match(architecture, /\.workspace\/services\/credit-calculator.*read-only/u);
   assert.match(architecture, /```mermaid[\s\S]*flowchart LR/u);
-  assert.match(architecture, /Подготовленный путь аналитика[\s\S]*Store-only только в персональной ветке сервиса/u);
+  assert.match(architecture, /Подготовленный путь аналитика[\s\S]*Готовый репозиторий кода R4/u);
+  assert.match(architecture, /sdd-credit-calculator-stage-4-example\//u);
+  assert.match(architecture, /переносить или удалять старые требования не нужно/u);
+  assert.match(architecture, /root\.source: declared/u);
+  assert.match(architecture, /личные пары и service pins не заменяются автоматически/u);
   assert.match(architecture, /Общая `main` R3 остаётся repo-local/u);
   assert.match(architecture, /Каждый Change из planning manifest[\s\S]*limit-credit-amount/u);
 });
