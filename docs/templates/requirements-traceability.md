@@ -1,20 +1,23 @@
-# Прослеживаемость требований ступени 4
+# Прослеживаемость требований personal R4
 
-Скопируйте шаблон в `docs/course/requirements-traceability.md`. Организатор заполняет унаследованные строки; аналитик добавляет точные пути и task нового Change.
+Организатор создаёт строки по фактическому `planning-provenance.json`, всем main specs и каждому импортированному активному Change. Аналитик дополняет таблицу новым `limit-credit-amount`; существующие строки и унаследованные файлы не переписываются молча.
 
-| Требование | Источник: repo + SHA + путь | Владеющий артефакт Store | Сценарий | Незавершённая task, если не реализовано | Проверка результата | Статус |
+| Требование / сценарий | Источник: repo + SHA + путь | Владеющий артефакт Store | Состояние до R4 | Незавершённая task | Проверка результата | Решение / review |
 | --- | --- | --- | --- | --- | --- | --- |
-| Очистка предыдущего результата при ошибке | `<R3_SOURCE>` | `openspec/specs/credit-calculator/spec.md` | `Ошибка очищает предыдущий результат` | не требуется только для доказанного baseline | существующий код/тест и ручной сценарий | `baseline only` |
-| Переключатель режима срока | `<R3_SOURCE>` | `openspec/changes/add-reset-and-years-term` | `<INHERITED_SCENARIO>` | `<INHERITED_PENDING_TASK>` | ввод целых месяцев сохранён; переключатель `месяцы / годы` не запускает расчёт | `pending implementation` |
-| Срок в годах | `<R3_SOURCE>` | `openspec/changes/add-reset-and-years-term` | `<INHERITED_SCENARIO>` | `<INHERITED_PENDING_TASK>` | шаг `0,5`, default `20`, `0,5→6`, `20→240` в целые месяцы | `pending implementation` |
-| Reset в выбранном режиме | `<R3_SOURCE>` | `openspec/changes/add-reset-and-years-term` | `<INHERITED_SCENARIO>` | `<INHERITED_PENDING_TASK>` | reset работает в обоих режимах: сохраняет режим, возвращает `3 000 000 / 16 / 240 месяцев` либо `20 лет`, очищает ошибки и результаты без auto-recalc | `pending implementation` |
-| Диапазон суммы | условие ступени 4 | `openspec/changes/limit-credit-amount` | `<NEW_SCENARIO>` | `<NEW_PENDING_TASK>` | `10 000` и `100 000 000` допустимы; `9 999` и `100 000 001` дают ошибку и очищают результат | `pending implementation` |
+| `<INHERITED_REQUIREMENT_OR_SCENARIO>` | `<PLANNING_REPOSITORY>@<PLANNING_SHA>:<SOURCE_PATH>` | `<TARGET_PATH>` | `<BASELINE_OR_PENDING_IMPLEMENTATION>` | `<TASK_PATH_OR_NOT_APPLICABLE>` | `<EXACT_CHECK>` | `<REVIEW_REFERENCE_OR_PENDING>` |
+| Допустимые границы суммы | условие R4 | `openspec/changes/limit-credit-amount/<DELTA_SPEC_PATH>` | `pending implementation` | `<NEW_PENDING_TASK>` | `10 000 ₽` и `100 000 000 ₽` допустимы | `<PENDING_REVIEW>` |
+| Ошибка за границей суммы | условие R4 | `openspec/changes/limit-credit-amount/<DELTA_SPEC_PATH>` | `pending implementation` | `<NEW_PENDING_TASK>` | `9 999 ₽` и `100 000 001 ₽` дают ошибку и очищают все применимые рассчитанные результаты | `<PENDING_REVIEW>` |
+| Конфликт прежнего успешного примера `101 ₽`, если он существует | `<ACTUAL_SOURCE_OR_NOT_APPLICABLE>` | `openspec/changes/limit-credit-amount/<DELTA_SPEC_PATH>` | `unresolved until grill` | `<NEW_PENDING_TASK_OR_NOT_APPLICABLE>` | только после явного согласия: новая MODIFIED delta использует `10 001 ₽ / 0% / 2 месяца`; ожидаемые результаты берутся из фактически импортированных capabilities | `<USER_DECISION_AND_REVIEW>` |
+
+Повторите первую строку для каждого унаследованного требования и сценария. Если main specs пусты, не создавайте фиктивный baseline. Если импорт не содержит общей суммы или переплаты, не выдумывайте эти результаты для новой delta.
 
 ## Контроль полноты
 
-- [ ] Все строки содержат конкретный source SHA и путь.
-- [ ] Унаследованный Change полностью сохранён и прочитан явно.
-- [ ] Новый Change ссылается на унаследованный как зависимость.
-- [ ] Каждое не реализованное требование связано с task `- [ ]` и проверкой.
-- [ ] Ни одна проверка документов не названа реализацией функции.
-- [ ] Store — единственный активный владелец planning-артефактов.
+- [ ] Все source-ссылки содержат repository, полный SHA и путь.
+- [ ] Каждый Change из `imports.activeChanges` представлен в таблице; чужих или ожидаемых по шаблону имён нет.
+- [ ] Каждое не реализованное требование связано с фактической task `- [ ]` и проверкой.
+- [ ] Новый Change явно учитывает каждый применимый импортированный Change.
+- [ ] Замена конфликтующего сценария оформлена новой delta только после ответа пользователя; унаследованный файл не изменён.
+- [ ] Незатронутые, заменённые и действительно новые сценарии считаются по фактическим файлам, без универсальной константы.
+- [ ] Документальная validation не названа реализацией функции или человеческим review.
+- [ ] Store — единственный активный владелец planning-артефактов; planning и service snapshots read-only.

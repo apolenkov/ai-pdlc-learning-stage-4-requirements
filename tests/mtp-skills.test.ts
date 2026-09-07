@@ -27,14 +27,19 @@ test("repository keeps its canonical setup skill outside the MTP-managed set", a
   const lock = JSON.parse(await readFile(LOCK_PATH, "utf8")) as MtpLock;
   assert.ok(!lock.managedSkills.includes("setup-analysis-workspace"));
   assert.match(skill, /npm run setup/u);
+  assert.match(skill, /npm ci/u);
+  assert.match(skill, /status до и после пуст/u);
   assert.doesNotMatch(skill, /openspec -- store (?:register|unregister)/u);
   assert.doesNotMatch(skill, /git clone|npm run doctor/u);
-  assert.match(skill, /аналитик начинает с `npm run bootstrap`/u);
-  assert.match(skill, /original project skill `grill-with-docs`/u);
+  assert.match(skill, /не запускайте bootstrap/u);
+  assert.match(skill, /не создавайте ветку или Change/u);
+  assert.match(skill, /Сообщите фактический результат и остановитесь/u);
 });
 
 test("temporary Store acceptance is isolated from the user registry", async () => {
-  const agents = await readFile(new URL("../AGENTS.md", import.meta.url), "utf8");
-  assert.match(agents, /acceptance-checkout[\s\S]*временн\S+ `XDG_DATA_HOME`/u);
-  assert.match(agents, /Не регистрируйте временный checkout в пользовательском реестре OpenSpec/u);
+  const organizer = await readFile(new URL("../docs/organizer-stage-4.md", import.meta.url), "utf8");
+  assert.match(organizer, /изолированном Store registry/u);
+  assert.match(organizer, /course_xdg="\$\(mktemp -d\)"/u);
+  assert.match(organizer, /XDG_DATA_HOME="\$course_xdg" npm exec openspec -- store register/u);
+  assert.match(organizer, /Не используйте пользовательский реестр организатора/u);
 });

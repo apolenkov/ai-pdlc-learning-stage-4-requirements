@@ -1,39 +1,39 @@
-# Передача личного результата ступени 3 в Store
+# Передача planning-контракта в personal import-base R4
 
-Скопируйте шаблон в `docs/course/stage-3-transfer.md` и замените все `<...>`. Этот файл входит в личную import-base R4.
+Организатор копирует этот шаблон в `docs/course/stage-3-transfer.md` и заменяет все `<...>`. Machine-readable источником inventory служит соседний `planning-provenance.json`.
 
-## Источник
+## Источники
 
-- Репозиторий R3: `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-3.git`
-- Ветка: `course/<LOGIN>/stage-3-reset-years`
-- Полный SHA принятого результата: `<40_CHARACTER_R3_SHA>`
-- Baseline source: `openspec/specs/credit-calculator/spec.md`
-- Baseline target: `openspec/specs/credit-calculator/spec.md`
-- Active Change source: `openspec/changes/add-reset-and-years-term/`
-- Active Change target: `openspec/changes/add-reset-and-years-term/`
-- Service context SHA in `services.lock.yaml`: `<40_CHARACTER_R3_SHA>`
+- Planning source repository: `<PLANNING_SOURCE_REPOSITORY>`
+- Planning source branch/ref: `<PLANNING_SOURCE_REF>`
+- Planning source SHA: `<PLANNING_SHA>`
+- Planning source workspace after bootstrap: `.workspace/planning/stage-3`
+- Main specs source/target: `openspec/specs/`
+- Active Change source/target: `openspec/changes/<INHERITED_CHANGE>/`
+- Service source repository: `<SERVICE_SOURCE_REPOSITORY>`
+- Service context SHA in `services.lock.yaml`: `<SERVICE_SHA>`
 
-## Подтверждения актуальной версии
+Повторите строку `Active Change source/target` для каждого имени из `planning-provenance.json#imports.activeChanges`. Planning SHA и service SHA описывают разные источники и не обязаны совпадать.
 
-- Review требований другим аналитиком: `<LINK_OR_REFERENCE>`
-- Review реализуемости разработчиком или архитектором: `<LINK_OR_REFERENCE>`
-- SHA обоих review: `<40_CHARACTER_R3_SHA>`
+## Review исходной версии
 
-Автоматическая проверка и ИИ не являются этими подтверждениями.
+- Review требований: `<REVIEW_REFERENCE_OR_PENDING>`
+- Review реализуемости: `<REVIEW_REFERENCE_OR_PENDING>`
+- SHA, к которому относятся review: `<PLANNING_SHA>`
 
-## Инвентарь
+Автоматическая проверка и ИИ не считаются человеческим review. Если подтверждение ещё ожидается, напишите `pending`, не подставляйте фиктивную ссылку.
 
-Вставьте результат `git ls-tree -r --name-only <FULL_R3_SHA> -- openspec/specs/credit-calculator openspec/changes/add-reset-and-years-term` и подтвердите:
+## Инвентарь и состояние
 
-- [ ] перенесён весь baseline;
-- [ ] перенесены `proposal.md`, delta spec, `design.md`, `tasks.md` и служебный файл Change, если он был в исходном SHA;
-- [ ] задачи переключателя «месяцы / годы», перевода лет и reset в обоих режимах остались `- [ ]`;
-- [ ] ввод целых месяцев сохранён; режим лет имеет шаг `0,5`, default `20 лет` и переводит `0,5→6`, `20→240` в целые месяцы;
-- [ ] reset сохраняет выбранный режим, возвращает срок `240 месяцев` либо `20 лет`, очищает ошибки и результаты и не запускает расчёт;
-- [ ] Change остался активным и не архивирован;
-- [ ] исходный SHA не содержит реализации reset, переключателя срока или диапазона суммы;
-- [ ] `.git`, `.workspace`, dependencies, `src`, `index.html`, styles и runtime-тесты не импортированы в Store.
+- Machine-readable inventory: `docs/course/planning-provenance.json`
+- [ ] Manifest совпадает с Git tree `<PLANNING_SHA>` по всем путям, blob OID и SHA-256.
+- [ ] Перенесён весь `openspec/specs/`, включая допустимый пустой каталог с `.gitkeep`.
+- [ ] Перенесён каждый активный Change, кроме `archive`, со всеми его файлами.
+- [ ] Во всех импортированных `tasks.md` implementation-задачи остались `- [ ]`.
+- [ ] Имена, требования и проверки перечислены по фактическим файлам, без предположения о втором Change или фиксированном числе сценариев.
+- [ ] `.git`, `.workspace`, dependencies, код сервиса и runtime-тесты не импортированы.
+- [ ] `services.lock.yaml` хранит отдельный проверенный service SHA, а не planning SHA.
 
 ## Переход ownership
 
-После проверенного импорта эта personal base Store является единственным активным местом изменения specs и Changes. Исходная R3-ветка сохраняется как история. Будущая персональная delivery-ветка сервиса переводится в Store-only отдельно; общая `main` R3 остаётся repo-local.
+После публикации personal import-base этот Store становится единственным активным местом изменения импортированных specs и Changes. Planning source сохраняется как история и read-only provenance snapshot. Код сервиса остаётся в отдельном репозитории; `.workspace/services/credit-calculator` используется только для чтения. Новый Change R4 создаётся поверх импорта без редактирования унаследованных файлов и без Apply.

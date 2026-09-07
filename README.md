@@ -1,161 +1,198 @@
 # Ступень 4. ИИ и продуктовый OpenSpec Store
 
-Это четвёртая аналитическая ступень. Вы получаете подготовленную организатором личную `course/your_login/stage-4-import-base`: в ней уже находятся baseline, **весь** согласованный активный Change `add-reset-and-years-term` из вашего полного SHA ступени 3 и закреплённый read-only snapshot сервиса. Унаследованный Change сохраняет ввод целого срока в месяцах, добавляет переключатель «месяцы / годы», перевод лет в целые месяцы и reset в обоих режимах без auto-recalc.
+Это четвёртая аналитическая ступень. Аналитик работает в одном личном checkout метарепозитория, а два закреплённых снимка в `.workspace/` использует только для проверки:
 
-С помощью OpenCode вы готовите новый зависимый Change `limit-credit-amount`: сумма кредита допустима от `10 000 ₽` до `100 000 000 ₽` включительно; соседние целые значения `9 999 ₽` и `100 000 001 ₽` отклоняются, предыдущий результат очищается. Это синтетическое условие курса, не банковское правило.
-
-Результат — согласованный Change в Store. Код сервиса не меняется, Apply не запускается, задачи реализации остаются незавершёнными.
-
-## 1. Получите готовую личную базу
-
-Организатор передаёт точный локальный путь и подтверждает:
-
-- ветка `course/your_login/stage-4-import-base` чистая;
-- `docs/course/stage-3-transfer.md` содержит исходный репозиторий, полный SHA и пути;
-- `openspec/specs/credit-calculator/spec.md` и весь `openspec/changes/add-reset-and-years-term/` перенесены из этого SHA;
-- `services.lock.yaml` закрепляет тот же проверенный SHA для read-only контекста;
-- Store `sdd-credit-calculator-product-meta` зарегистрирован именно на выданную папку;
-- зависимости, project skills и корпоративный OpenCode уже подготовлены.
-
-Аналитик не выполняет clone, `npm ci`, `npm run setup`, регистрацию Store или импорт контракта. Если чего-то нет, верните папку организатору; не восстанавливайте окружение догадками.
-
-## 2. Проверьте bootstrap и Store root
-
-```bash
-cd "/путь/от-организатора/sdd-credit-calculator-product-meta-example"
-npm run bootstrap
-npm exec openspec -- store doctor sdd-credit-calculator-product-meta --json
+```text
+личный Git SHA результата R3 или R3-ИИ
+              │ организатор переносит весь planning inventory
+              ▼
+personal import-base в product-meta ── публикация ветки
+              │ ученик клонирует её сам
+              ▼
+sdd-credit-calculator-product-meta-example/
+├── openspec/                         единственное место изменения требований
+├── .workspace/planning/stage-3/      source provenance, только чтение
+└── .workspace/services/...           контекст сервиса, только чтение
 ```
 
-`bootstrap: PASS` должен подтвердить provenance-файлы, полный унаследованный Change с незавершёнными tasks, Store root и закреплённый SHA. Он сравнивает точный inventory и байты импортированного baseline и всего Change с Git tree закреплённого service SHA. Команда останавливается при пропущенном или изменённом файле, чужом baseline, грязном meta checkout, другой регистрации Store, грязном/чужом snapshot или несовпадающем SHA; ничего из этого она не перезаписывает.
+Planning SHA и service SHA принадлежат разным репозиториям и не обязаны совпадать. Код сервиса на этой ступени не меняется, Apply не запускается, задачи реализации остаются `- [ ]`.
 
-`.workspace/services/credit-calculator` используется только для чтения. Это не рабочая папка разработчика, её зависимости не устанавливаются.
+## Два честных входа
 
-## 3. Запустите OpenCode и создайте рабочую ветку
+Основной вход продолжает ваш результат R3 или необязательного R3-ИИ. Организатор готовит и публикует персональную ветку `course/<LOGIN>/stage-4-import-base` из вашего полного Git SHA. В неё входят все фактически активные Changes источника и весь `openspec/specs/`; предметная main spec может отсутствовать.
+
+Если вы начинаете сразу с R4, организатор указывает отдельный учебный source ref и публикует явно названную example import-base. Это пример, а не ваша вымышленная история R1–R3. Не используйте неподготовленную `main` метарепозитория как эквивалент personal import-base.
+
+## 1. Клонируйте опубликованную базу
+
+Организатор передаёт URL метарепозитория, точное имя опубликованной import-base и planning SHA. Убедитесь, что папки с каноническим именем ещё нет, затем выполните:
+
+```bash
+git clone --branch course/<LOGIN>/stage-4-import-base --single-branch \
+  https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git \
+  sdd-credit-calculator-product-meta-example
+cd sdd-credit-calculator-product-meta-example
+git status --short --branch
+git rev-parse HEAD
+```
+
+Замените `<LOGIN>` и имя ветки значениями организатора. Ожидаемый результат — открыта переданная ветка, status пуст. При отсутствующей ветке, другом SHA или существующей папке остановитесь: не подставляйте `main`, не удаляйте каталог и не смешивайте две копии.
+
+## 2. Запустите OpenCode и подготовьте checkout через project skill
+
+Из корня клона запустите:
 
 ```bash
 opencode
 ```
 
-Выберите подготовленную корпоративную модель и отправьте:
+Отправьте сообщение:
 
 ```text
-Я аналитик учебной ступени 4. Работаю в подготовленном Store
-sdd-credit-calculator-product-meta. Прочитай AGENTS.md, README.md,
-CONTEXT.md, product.yaml, services.lock.yaml,
-docs/course/stage-3-transfer.md,
-openspec/specs/credit-calculator/spec.md и весь унаследованный активный
-Change openspec/changes/add-reset-and-years-term.
-
-Проверь Store root, текущую ветку и git status. Ожидаемая личная base —
-course/your_login/stage-4-import-base. Если дерево чистое и открыта эта
-base, создай course/your_login/stage-4-amount-limits. Если рабочая ветка
-уже открыта, продолжай в ней. При другой ветке или правках остановись.
-
-Для чтения OpenSpec используй явный
---store sdd-credit-calculator-product-meta. Не запускай setup,
-регистрацию Store, clone, Apply или миграцию сервиса. .workspace только
-читай. Не меняй код, не выполняй commit, push или внешние записи.
+Используй project skill setup-analysis-workspace. Подготовь этот checkout
+строго по его инструкции и остановись после отчёта о npm ci, npm run setup
+и заключительном чистом git status. Не регистрируй Store, не запускай
+bootstrap, не создавай ветку или Change, не выполняй commit и push.
 ```
 
-Замените `your_login`; для повторного прохождения используйте одинаковый суффикс у обеих личных веток.
+Skill выполняет `npm ci` и `npm run setup`, проверяя чистоту Git до и после. Если команда завершилась ошибкой или status изменился, подготовка не окончена; не чините package/lock догадками.
 
-## 4. Проверьте унаследованный контракт
+## 3. Проверьте Store root
 
-В отдельном терминале той же папки выполните:
+После успешного setup выполните из того же корня:
 
 ```bash
-npm exec openspec -- status --change add-reset-and-years-term --json --store sdd-credit-calculator-product-meta
-npm exec openspec -- instructions apply --change add-reset-and-years-term --json --store sdd-credit-calculator-product-meta
+npm exec openspec -- store list --json
 ```
 
-Change должен быть активным. Его задачи переключателя «месяцы / годы», перевода лет и reset в обоих режимах должны быть `- [ ]`; согласование не превращает их в реализованные функции. Сверьте `docs/course/requirements-traceability.md`: очистка результата при ошибке относится к baseline; ввод целых месяцев сохраняется; режим лет имеет шаг `0,5`, default `20 лет` и перевод `0,5→6`, `20→240`; reset сохраняет выбранный режим, возвращает `240 месяцев` либо `20 лет`, очищает ошибки и результаты и не запускает расчёт.
+Нужен Store ID `sdd-credit-calculator-product-meta`, указывающий точно на текущую папку.
 
-Если Change отсутствует, архивирован как реализованный, не совпадает с source SHA или потерял сценарий, остановитесь и верните папку организатору.
+- Если ID отсутствует, остановитесь и получите явное разрешение организатора на регистрацию именно этого checkout. Отсутствие записи не разрешает регистрировать Store автоматически.
+- Если ID указывает на другую папку, покажите организатору оба пути и остановитесь. Не выполняйте unregister/remove и не переназначайте чужой root.
+- Если root совпадает, проверьте его:
 
-## 5. Обсудите новое требование через original MTP grill
+```bash
+npm exec openspec -- store doctor sdd-credit-calculator-product-meta --json
+```
 
-Использование ИИ на этой ступени обязательно. В той же сессии отправьте:
+## 4. Дважды проверьте bootstrap
+
+Только при правильном Store root и чистом status выполните две отдельные команды без `grep`, `tail` или pipeline:
+
+```bash
+npm run bootstrap
+npm run bootstrap
+git status --short
+git -C .workspace/planning/stage-3 status --short
+git -C .workspace/services/credit-calculator status --short
+```
+
+Оба запуска должны завершиться `bootstrap: PASS`: первый получает либо переиспользует два read-only снимка, второй подтверждает идемпотентность. Пустой вывод трёх status означает чистое состояние. Результаты fixture-тестов внутри `npm run check` не заменяют эти два реальных запуска.
+
+`.workspace/planning/stage-3` и `.workspace/services/credit-calculator` доступны только для чтения: не исправляйте в них planning или код.
+
+Bootstrap сверяет source repository/SHA, точный Git-tree inventory, blob OID, SHA-256 исходного blob и каноническое Git-содержимое импорта. LF/CRLF рабочего checkout может нормализоваться Git. Команда не исправляет потерянные или лишние файлы, checked tasks, грязный snapshot и конфликт Store root.
+
+## 5. Прочитайте фактический унаследованный контракт
+
+Откройте:
+
+- `CONTEXT.md`, `product.yaml`, `services.lock.yaml`;
+- `docs/course/planning-provenance.json`;
+- `docs/course/stage-3-transfer.md` и `docs/course/requirements-traceability.md`;
+- весь `openspec/specs/`;
+- каждый Change из `imports.activeChanges` manifest.
+
+После обычной R3 источник содержит минимум один активный Change. После необязательной R3-ИИ их может быть два или больше. Не требуйте фиксированное имя второго Change, число файлов, строк матрицы или сценариев: источником правды служат Git tree, manifest и сами артефакты. В каждом импортированном `tasks.md` все задачи должны оставаться pending.
+
+Служебные Changes самого шаблона не относятся к истории ученика и не входят в imported inventory. Новый `limit-credit-amount` должен учитывать каждый импортированный активный Change, который реально присутствует.
+
+## 6. Создайте рабочую ветку
+
+Проверьте base и чистоту, затем создайте ветку:
+
+```bash
+git status --short --branch
+git switch -c course/<LOGIN>/stage-4-amount-limits
+```
+
+Если рабочая ветка уже существует, продолжайте её только после проверки base. Не создавайте ветку от общей `main`.
+
+## 7. Обсудите требование через original MTP grill
+
+В OpenCode отправьте:
 
 ```text
-Загрузи оригинальный project skill grill-with-docs и прочитай требуемые
-им инструкции. Обсудим зависимое изменение limit-credit-amount:
-сумма кредита допустима от 10 000 ₽ до 100 000 000 ₽ включительно;
-9 999 ₽ и 100 000 001 ₽ должны давать ошибку и очищать предыдущий
-результат. Это синтетические условия, не банковские правила.
+Загрузи original project skill grill-with-docs и прочитай его инструкции.
+Обсудим Change limit-credit-amount: сумма кредита допустима от 10 000 ₽
+до 100 000 000 ₽ включительно; 9 999 ₽ и 100 000 001 ₽ дают ошибку
+и очищают все рассчитанные результаты.
 
-Сопоставь идею с продуктовым контекстом, baseline, provenance и всем
-унаследованным Change add-reset-and-years-term: месячный ввод сохраняется,
-переключатель выбирает месяцы или годы, годы переводятся в целые месяцы,
-reset работает в обоих режимах и не запускает расчёт. Задавай вопросы раундами
-до явного подтверждения общего понимания. Не придумывай отсутствующие
-факты, не меняй документы или код и не создавай Change.
+Сначала прочитай planning-provenance.json, весь openspec/specs и каждый
+импортированный active Change. Укажи зависимости и возможные конфликты.
+Если прежний успешный сценарий использует сумму 101 ₽, отдельно спроси,
+согласен ли я заменить его новой delta на пример 10 001 ₽, 0%, 2 месяца:
+платёж 5 001 ₽, общая сумма 10 001 ₽, переплата 0 ₽. Не меняй
+унаследованные файлы и не выбирай замену молча.
+
+Задавай вопросы раундами до моего явного подтверждения общего понимания.
+Не создавай Change, не запускай Apply и не меняй код.
 ```
 
-Ответьте на вопросы и явно подтвердите итог. ИИ не заменяет решение человека.
+Если в источнике нет payment summary, вопросы и будущая delta не должны выдумывать общую сумму или переплату. Если capability присутствует, ошибка суммы должна очищать все её результаты.
 
-## 6. Используйте Explore только для существенной развилки
+## 8. Используйте Explore только при оставшейся развилке
 
-Если после grill остаётся решение, влияющее на поведение, design или проверку, попросите OpenSpec Explore разобрать варианты без edits. Если развилки нет, переходите к Propose; не запускайте Explore для пересказа уже принятого решения.
+После grill вызовите OpenSpec Explore только если осталось существенное решение о поведении, замене сценария, структуре delta или проверке. Если все решения подтверждены, сразу переходите к Propose. Explore не нужен для пересказа принятого ответа.
 
-## 7. Создайте зависимый Change через Propose
+## 9. Создайте Change через Propose
 
 ```text
-Используй OpenSpec Propose для limit-credit-amount в явном Store
-sdd-credit-calculator-product-meta. Создай полный набор spec-driven:
-proposal, delta specs, design и tasks. В proposal и design укажи
-зависимость от активного add-reset-and-years-term и исходного SHA из
-docs/course/stage-3-transfer.md; официальный Store не объединяет Changes
-автоматически.
+Используй OpenSpec Propose для limit-credit-amount в Store
+sdd-credit-calculator-product-meta. Создай proposal, delta specs, design
+и tasks. Явно перечисли зависимости от каждого импортированного active
+Change из planning-provenance.json.
 
-Измени существующую capability credit-calculator: допустимы 10 000 ₽
-и 100 000 000 ₽ включительно; 9 999 ₽ и 100 000 001 ₽ отклоняются,
-ошибка очищает предыдущий результат. Сохрани baseline и все сценарии
-унаследованного Change, включая месячный ввод, переключатель, перевод
-`0,5 года = 6 месяцев`, `20 лет = 240 месяцев` и reset в обоих режимах
-без auto-recalc. Добавь отдельную незавершённую задачу реализации
-и точную проверку нового диапазона. Обнови
-docs/course/requirements-traceability.md строкой нового Change.
+Зафиксируй включительные границы 10 000 и 100 000 000 ₽, ошибочные
+9 999 и 100 000 001 ₽ и очистку всех применимых результатов. Если на
+grill согласована замена конфликтующих примеров 101 ₽, вырази её новой
+MODIFIED delta через 10 001 ₽; исходные imported файлы не меняй.
 
-Не меняй код или services.lock.yaml, не запускай Apply, не отмечай tasks
-выполненными и не архивируй Changes. Выполни strict validation с явным
---store и остановись для review.
+Все задачи реализации и проверки оставь - [ ]. Не запускай Apply,
+archive или sync и не меняй код сервиса.
 ```
 
-## 8. Проведите ИИ-review и автоматические проверки
+Для полного учебного примера R3+3-ИИ итог считают по смыслу: 31 незатронутый унаследованный сценарий + 2 явно заменённых ожидания + 5 действительно новых сценариев = 38 действующих сценариев. Это проверка конкретного примера, а не универсальная константа. Не складывайте повторённые MODIFIED-блоки как новые требования; фактические числа берите из файлов.
 
-Попросите агента критически сверить baseline, унаследованный Change, новый Change и матрицу. Он должен найти потерянные сценарии, ложные утверждения о реализации, закрытые tasks и неявную зависимость. Исправляйте только принятые замечания.
+## 10. Проверьте содержание и сохраните результат
+
+Сначала прочитайте все созданные файлы и итоговый договор зависимых Changes. Затем выполните:
 
 ```bash
 npm exec openspec -- status --change limit-credit-amount --json --store sdd-credit-calculator-product-meta
-npm exec openspec -- validate add-reset-and-years-term --strict --store sdd-credit-calculator-product-meta
-npm exec openspec -- validate limit-credit-amount --strict --store sdd-credit-calculator-product-meta
+npm exec openspec -- validate --all --strict --no-interactive --store sdd-credit-calculator-product-meta
 npm run check
 git diff --check
 git diff
 git status --short
 ```
 
-Эти проверки не доказывают реализацию переключателя срока, reset в обоих режимах или диапазона суммы.
+Сохраняйте исходный exit status каждой команды; не считайте отфильтрованный вывод результатом самой проверки. Зелёная валидация не доказывает отсутствие смыслового конфликта и не является реализацией функций.
 
-## 9. Получите два человеческих review
-
-Добавьте только новый Change и обновлённую матрицу, прочитайте staged diff:
+Добавьте только новый Change и согласованную матрицу, прочитайте staged diff:
 
 ```bash
 git add openspec/changes/limit-credit-amount docs/course/requirements-traceability.md
 git diff --cached
 git status --short
 git commit -m "docs: propose inclusive credit amount limits"
-git push -u origin course/your_login/stage-4-amount-limits
+git push -u origin course/<LOGIN>/stage-4-amount-limits
 ```
 
-Откройте planning PR из `course/your_login/stage-4-amount-limits` в личную `course/your_login/stage-4-import-base`, не в общую `main`. Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость design, задач и проверок. После содержательных правок оба review повторяются для актуального diff.
+Откройте planning PR в личную `course/<LOGIN>/stage-4-import-base`, не в общую `main`. Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость. После содержательных правок оба review повторяются для актуального diff. После двух подтверждений сохраните ветку и закройте учебный PR без слияния.
 
-После двух подтверждений закройте PR без слияния и сохраните рабочую ветку. Итог — согласованный активный `limit-credit-amount`, зависимый от активного `add-reset-and-years-term`; все задачи реализации остаются `- [ ]`.
+## STOP: реализация отдельно
 
-## Реализация отдельно
+Результат R4 — согласованный активный Change. Не запускайте Apply, не отмечайте tasks выполненными и не редактируйте `.workspace`. Разработчик позже использует отдельный рабочий checkout сервиса; read-only snapshot внутри Store им не является.
 
-Разработчик использует две соседние папки, явный Store root и отдельную персональную Store-only ветку сервиса. Общая `main` R3 остаётся repo-local, `.workspace` — read-only. Полная процедура находится в [практикуме сервиса](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-3/blob/main/docs/developer-handoff.md).
-
-[Сопровождение и подготовка](CONTRIBUTING.md) предназначены организатору, не аналитику.
+[Инструкция организатору](docs/organizer-stage-4.md) описывает подготовку и публикацию import-base. [CONTRIBUTING.md](CONTRIBUTING.md) отделяет сопровождение эталона от работы ученика.

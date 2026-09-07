@@ -20,7 +20,8 @@ test("Store checks do not require or execute the service", async () => {
   }
   await readLock();
   const files = ["AGENTS.md", "CONTEXT.md", "README.md", "product.yaml", ".agents/skills/grill-with-docs/SKILL.md", ".agents/skills/domain-modeling/SKILL.md"];
-  files.push(await hasPlanningManifest() ? "openspec/specs/.gitkeep" : "openspec/specs/credit-calculator/spec.md");
+  files.push("openspec/specs/credit-calculator/spec.md");
+  if (await hasPlanningManifest()) files.pop();
   for (const file of files) {
     await access(resolve(root, file));
   }
@@ -43,11 +44,15 @@ test("prepared personal context separates planning provenance from the service p
   const [provenance, lock] = await Promise.all([readPlanningProvenance(root), readLock()]);
   assert.notEqual(provenance.source.commit, lock.commit);
   assert.equal(provenance.source.workspace, ".workspace/planning/stage-3");
-  assert.deepEqual(provenance.imports.activeChanges, ["add-payment-summary", "add-reset-and-years-term"]);
-  await access(resolve(root, provenance.imports.mainSpecsRoot, ".gitkeep"));
-  await assert.rejects(access(resolve(root, provenance.imports.mainSpecsRoot, "credit-calculator/spec.md")));
+  assert.ok(provenance.imports.activeChanges.length >= 1);
+  assert.deepEqual(provenance.imports.activeChanges, [...provenance.imports.activeChanges].sort());
   for (const file of provenance.files) await access(resolve(root, file.path));
-  assert.equal(provenance.files.length, 12);
+  for (const change of provenance.imports.activeChanges) {
+    assert.ok(
+      provenance.files.some(({ path }) => path === `openspec/changes/${change}/tasks.md`),
+      `missing tasks.md for ${change}`,
+    );
+  }
 });
 
 test("OpenSpec Store identity is committed and points to this meta repository", async () => {
@@ -67,28 +72,23 @@ test("Store setup uses the official CLI without a custom wrapper", async () => {
   assert.doesNotMatch(skill, /openspec -- store (?:register|unregister)/u);
 });
 
-test("analyst entry starts in an organizer-prepared local meta directory", async () => {
+test("analyst clones the organizer-published personal base before setup", async () => {
   const readme = await readFile(resolve(root, "README.md"), "utf8");
   const contributing = await readFile(resolve(root, "CONTRIBUTING.md"), "utf8");
   const organizer = await readFile(resolve(root, "docs/organizer-stage-4.md"), "utf8");
-  assert.match(readme, /подготовленную организатором личную/u);
-  assert.match(readme, /npm run bootstrap[\s\S]*?opencode/u);
-  assert.match(readme, /Аналитик не выполняет clone, `npm ci`, `npm run setup`, регистрацию Store или импорт контракта/u);
-  assert.match(readme, /course\/your_login\/stage-4-import-base/u);
-  assert.match(readme, /course\/your_login\/stage-4-amount-limits/u);
-  assert.match(readme, /два человеческих review/u);
-  assert.match(readme, /закройте PR без слияния/u);
-  assert.match(readme, /все задачи реализации остаются `- \[ \]`/u);
-  assert.match(contributing, /Node\.js 22\+, npm и OpenCode с корпоративной аутентификацией/u);
-  assert.match(organizer, /npm run bootstrap\n+npm run bootstrap/u);
-  assert.match(organizer, /Не выполняйте unregister\/remove/u);
-  assert.match(organizer, /не должен исправлять неполный или изменённый импорт, чужой baseline, грязный либо закреплённый на другом SHA snapshot/u);
-  if (await hasPlanningManifest()) {
-    assert.match(organizer, /Planning source.*307bfe46006a9f289b56d1ae2c156af92d9529d4/u);
-    assert.match(organizer, /Service source.*97d07d1c0723c1d9ac79a444bd120195877a01a8/u);
-    assert.match(organizer, /оба Change — 11 файлов/u);
-    assert.match(organizer, /Всего 33 и 21/u);
-  }
+  assert.match(readme, /Организатор готовит и публикует персональную ветку/u);
+  assert.match(readme, /git clone --branch course\/<LOGIN>\/stage-4-import-base --single-branch/u);
+  assert.match(readme, /opencode[\s\S]*?setup-analysis-workspace[\s\S]*?npm ci[\s\S]*?npm run setup/u);
+  assert.match(readme, /npm run bootstrap\n+npm run bootstrap/u);
+  assert.match(readme, /course\/<LOGIN>\/stage-4-import-base/u);
+  assert.match(readme, /course\/<LOGIN>\/stage-4-amount-limits/u);
+  assert.match(readme, /Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость/u);
+  assert.match(readme, /учебный PR закрывается без слияния|закройте учебный PR без слияния/u);
+  assert.match(readme, /задачи реализации остаются `- \[ \]`/u);
+  assert.match(contributing, /Ученик сам клонирует опубликованную ветку/u);
+  assert.match(organizer, /XDG_DATA_HOME="\$course_xdg" npm run bootstrap\nXDG_DATA_HOME="\$course_xdg" npm run bootstrap/u);
+  assert.match(organizer, /не выполняйте unregister\/remove/iu);
+  assert.match(organizer, /Публикация import-base не является человеческим review/u);
 });
 
 test("OpenCode receives the Store-aware OpenSpec workflows from the repository", async () => {
@@ -106,7 +106,7 @@ test("Store and Workset architecture keeps pinned workspace read-only", async ()
   assert.match(architecture, /```mermaid[\s\S]*flowchart LR/u);
   assert.match(architecture, /Подготовленный путь аналитика[\s\S]*Store-only только в персональной ветке сервиса/u);
   assert.match(architecture, /Общая `main` R3 остаётся repo-local/u);
-  assert.match(architecture, /add-reset-and-years-term[\s\S]*limit-credit-amount/u);
+  assert.match(architecture, /Каждый Change из planning manifest[\s\S]*limit-credit-amount/u);
 });
 
 test("stage 4 preserves the inherited planning contract before the dependent Change", async () => {
@@ -117,44 +117,29 @@ test("stage 4 preserves the inherited planning contract before the dependent Cha
     readFile(resolve(root, prepared ? "docs/course/requirements-traceability.md" : "docs/templates/requirements-traceability.md"), "utf8"),
     readFile(resolve(root, "openspec/config.yaml"), "utf8"),
   ]);
-  assert.match(readme, /весь.*add-reset-and-years-term/u);
-  assert.match(readme, /10 000 ₽.*100 000 000 ₽.*включительно/u);
-  assert.match(readme, /9 999 ₽.*100 000 001 ₽.*отклоняются/u);
+  assert.match(readme, /все фактически активные Changes/u);
+  assert.match(readme, /10 000 ₽[\s\S]*?100 000 000 ₽ включительно/u);
+  assert.match(readme, /9 999 ₽[\s\S]*?100 000 001 ₽[\s\S]*?ошиб/u);
   assert.match(readme, /original MTP grill/u);
   assert.match(readme, /Explore[\s\S]*Propose/u);
   assert.match(readme, /не запускай Apply/u);
-  assert.match(transfer, prepared ? /Planning source SHA/u : /Полный SHA принятого результата/u);
-  if (!prepared) assert.match(transfer, /задачи переключателя «месяцы \/ годы».*reset в обоих режимах остались `- \[ \]`/u);
-  assert.match(traceability, /переключатель `месяцы \/ годы` не запускает расчёт/iu);
-  assert.match(traceability, /reset работает в обоих режимах/u);
-  assert.match(readme, /точный inventory и байты.*Git tree/u);
+  assert.match(transfer, /Planning source SHA/u);
+  assert.match(transfer, /каждого имени из `planning-provenance\.json#imports\.activeChanges`/u);
+  assert.match(traceability, /Каждый Change из `imports\.activeChanges` представлен/u);
+  assert.match(traceability, /Если main specs пусты, не создавайте фиктивный baseline/u);
+  assert.match(readme, /точный Git-tree inventory, blob OID, SHA-256/u);
   if (prepared) {
-    for (const change of ["add-payment-summary", "add-reset-and-years-term"]) {
+    const provenance = await readPlanningProvenance(root);
+    for (const change of provenance.imports.activeChanges) {
       assert.match(transfer, new RegExp(change, "u"));
       assert.match(traceability, new RegExp(change, "u"));
     }
-    for (const requirement of [
-      "Платёж и округление",
-      "Проверка ввода и очистка прежнего платежа",
-      "Срок и переключатель `месяцы / годы`",
-      "Перевод лет",
-      "Reset",
-      "Локальность и отсутствие хранения",
-      "Общая сумма и переплата",
-      "Согласованное состояние трёх результатов",
-    ]) {
-      const row = traceability.split("\n").find((line) => line.startsWith(`| ${requirement} |`));
-      assert.ok(row, `missing traceability row: ${requirement}`);
-      assert.match(row, /pending implementation/u);
-    }
-    assert.match(config, /Для limit-credit-amount явно указывать зависимость/u);
-    assert.match(config, /add-reset-and-years-term/u);
-    assert.match(config, /add-payment-summary/u);
+    assert.doesNotMatch(config, /add-reset-and-years-term|add-payment-summary/u);
   } else {
-    assert.match(traceability, /add-reset-and-years-term[\s\S]*limit-credit-amount/u);
-    assert.match(traceability, /pending implementation/g);
-    assert.match(config, /limit-credit-amount.*add-reset-and-years-term/u);
+    assert.match(traceability, /<INHERITED_REQUIREMENT_OR_SCENARIO>/u);
+    assert.match(traceability, /limit-credit-amount/u);
   }
+  assert.match(config, /каждого применимого импортированного активного Change/u);
 });
 
 test("all Store reads use explicit root checks and the service workspace stays read-only", async () => {
@@ -168,15 +153,11 @@ test("all Store reads use explicit root checks and the service workspace stays r
   }
   assert.match(readme, /store doctor sdd-credit-calculator-product-meta --json/u);
   assert.match(readme, /\.workspace\/services\/credit-calculator.*только для чтения/u);
-  if (await hasPlanningManifest()) {
-    assert.match(organizer, /planning-provenance\.json/u);
-    assert.match(organizer, /все активные Changes, кроме archive/u);
-    assert.match(organizer, /\.workspace\/planning\/stage-3 rev-parse HEAD/u);
-    assert.match(organizer, /\.workspace\/services\/credit-calculator rev-parse HEAD/u);
-  } else {
-    assert.match(organizer, /git -C \.\.\/sdd-credit-calculator-example archive <FULL_R3_SHA>/u);
-    assert.match(organizer, /test ! -e openspec\/changes\/add-reset-and-years-term/u);
-  }
+  assert.match(organizer, /prepare-course-import\.ts stage/u);
+  assert.match(organizer, /prepare-course-import\.ts verify/u);
+  assert.match(organizer, /все активные каталоги `openspec\/changes\/\*`, кроме `archive`/u);
+  assert.match(organizer, /git -C \.workspace\/planning\/stage-3 status --short/u);
+  assert.match(organizer, /git -C \.workspace\/services\/credit-calculator status --short/u);
 });
 
 test("context remains a domain glossary", async () => {
@@ -185,7 +166,8 @@ test("context remains a domain glossary", async () => {
   assert.match(context, /## Язык/);
   assert.match(context, /_Избегать_:/);
   assert.doesNotMatch(context, /TypeScript|npm install|Makefile|git clone/);
-  assert.match(context, /openspec\/(?:specs\/credit-calculator|changes\/add-reset-and-years-term\/specs\/credit-calculator)\/spec\.md/);
+  assert.match(context, /planning inventory в `openspec\/specs\/` и активных Changes/u);
+  assert.match(context, /docs\/course\/planning-provenance\.json/u);
   assert.doesNotMatch(context, /не могут быть отрицательными|должен быть положительным|округлённый до целого|сумма делится на срок/);
   const product = await readFile(resolve(root, "product.yaml"), "utf8");
   assert.doesNotMatch(product, /^workspace:/m);
