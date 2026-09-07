@@ -54,12 +54,13 @@ opencode
 ```text
 Сначала выполни git rev-parse --show-toplevel и покажи полный Git root.
 Внутри именно этого root найди и прочитай целиком
-.agents/skills/setup-analysis-workspace/SKILL.md. До любых команд покажи
+.agents/skills/setup-analysis-workspace/SKILL.md. До npm ci/setup покажи
 полный путь выбранного SKILL.md и подтверди, что его базовая папка равна
 <git-root>/.agents/skills/setup-analysis-workspace. Если имя
-setup-analysis-workspace разрешается в глобальный ~/.agents/skills
-или любой другой файл, НЕ выполняй его: прочитай и следуй project-файлу
-напрямую.
+setup-analysis-workspace разрешается в
+~/.agents/skills/setup-analysis-workspace/SKILL.md, иной глобальный каталог
+skills или любой другой файл, НЕ выполняй его: прочитай и следуй
+project-файлу напрямую.
 
 По project-файлу выполни npm ci ровно один раз, затем npm run setup ровно
 один раз. Сохрани exit status каждой исходной команды и в конце покажи git

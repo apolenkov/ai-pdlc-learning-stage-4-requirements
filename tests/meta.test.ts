@@ -77,8 +77,9 @@ test("Store setup uses the official CLI without a custom wrapper", async () => {
   assert.match(skill, /npm run setup/u);
   assert.doesNotMatch(skill, /openspec -- store (?:register|unregister)/u);
   assert.match(readme, /git rev-parse --show-toplevel.*\.agents\/skills\/setup-analysis-workspace\/SKILL\.md/su);
-  assert.match(readme, /полный путь выбранного SKILL\.md.*базовая папка равна\s+<git-root>\/\.agents\/skills\/setup-analysis-workspace/su);
-  assert.match(readme, /глобальный \/Users\/wrk\/\.agents\/skills.*НЕ выполняй его.*project-файлу/su);
+  assert.match(readme, /До npm ci\/setup покажи\s+полный путь выбранного SKILL\.md.*базовая папка равна\s+<git-root>\/\.agents\/skills\/setup-analysis-workspace/su);
+  assert.match(readme, /~\/\.agents\/skills\/setup-analysis-workspace\/SKILL\.md.*глобальный каталог\s+skills.*НЕ выполняй его.*project-файлу/su);
+  assert.doesNotMatch(readme, /\/Users\/wrk/u);
   assert.match(readme, /npm ci ровно один раз.*npm run setup ровно\s+один раз/su);
   assert.match(readme, /уже успешно завершились.*не повторяй\s+их.*покажи только Git root и status/su);
   assert.match(agents, /<git-root>\/\.agents\/skills\/setup-analysis-workspace\/SKILL\.md/u);
