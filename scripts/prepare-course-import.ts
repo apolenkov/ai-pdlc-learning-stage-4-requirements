@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { lstat, mkdir, mkdtemp, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
-import { basename, dirname, isAbsolute, relative, resolve } from "node:path";
+import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { readLock } from "./config.js";
@@ -51,9 +51,38 @@ function assertSeparatePaths(source: string, output: string): void {
   const outputFromSource = relative(source, output);
   const sourceFromOutput = relative(output, source);
   if (!outputFromSource || !sourceFromOutput
-    || (!outputFromSource.startsWith("..") && !isAbsolute(outputFromSource))
-    || (!sourceFromOutput.startsWith("..") && !isAbsolute(sourceFromOutput))) {
+    || (!isOutside(outputFromSource))
+    || (!isOutside(sourceFromOutput))) {
     throw new Error("stage output must be outside the planning source checkout");
+  }
+}
+
+function isOutside(relativePath: string): boolean {
+  return isAbsolute(relativePath) || relativePath === ".." || relativePath.startsWith(`..${sep}`);
+}
+
+async function resolveBeforeCreating(path: string): Promise<string> {
+  const missing: string[] = [];
+  let ancestor = path;
+  while (!await exists(ancestor)) {
+    const parent = dirname(ancestor);
+    if (parent === ancestor) throw new Error("stage output has no existing parent");
+    missing.unshift(basename(ancestor));
+    ancestor = parent;
+  }
+  return resolve(await realpath(ancestor), ...missing);
+}
+
+function assertSafeHttpsRepository(repository: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(repository);
+  } catch {
+    throw new Error("planning source origin must be a credential-free HTTPS URL");
+  }
+  if (parsed.protocol !== "https:" || !parsed.hostname || parsed.username || parsed.password
+    || parsed.search || parsed.hash || /\s/u.test(repository)) {
+    throw new Error("planning source origin must be a credential-free HTTPS URL");
   }
 }
 
@@ -76,9 +105,7 @@ async function inspectSource(sourceInput: string, commit: string): Promise<{
   const head = await gitText(source, ["rev-parse", "--verify", "HEAD^{commit}"]);
   if (head !== commit) throw new Error(`planning source HEAD ${head} does not match requested commit ${commit}`);
   const repository = await gitText(source, ["remote", "get-url", "origin"]);
-  if (!/^https:\/\/\S+$/u.test(repository)) {
-    throw new Error("planning source origin must use HTTPS");
-  }
+  assertSafeHttpsRepository(repository);
 
   const tree = await gitText(source, ["ls-tree", "-r", "-z", commit, "--", "openspec/specs", "openspec/changes"]);
   const treeFiles = tree.split("\0").filter(Boolean).map((entry) => {
@@ -117,10 +144,10 @@ export async function stageCourseImport(options: StageCourseImportOptions): Prom
   if (await exists(requestedOutput)) {
     throw new Error(`stage output already exists; preserve it and choose a new path: ${requestedOutput}`);
   }
-  await mkdir(dirname(requestedOutput), { recursive: true });
-  const output = resolve(await realpath(dirname(requestedOutput)), basename(requestedOutput));
+  const output = await resolveBeforeCreating(requestedOutput);
   assertSeparatePaths(inspected.source, output);
   if (await exists(output)) throw new Error(`stage output already exists; preserve it and choose a new path: ${output}`);
+  await mkdir(dirname(output), { recursive: true });
   const temporary = await mkdtemp(resolve(dirname(output), ".course-import-"));
   try {
     await mkdir(resolve(temporary, mainSpecsRoot), { recursive: true });

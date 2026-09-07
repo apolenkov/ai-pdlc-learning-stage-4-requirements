@@ -13,7 +13,7 @@
 - `<META_REPOSITORY_URL>` — HTTPS URL метарепозитория;
 - `<REVIEW_REFERENCE>` — ссылки или точные ссылки на актуальные человеческие review.
 
-Planning SHA описывает происхождение требований. Service SHA описывает версию кода для чтения. Они принадлежат разным репозиториям и не обязаны совпадать.
+Planning SHA описывает происхождение требований. Service SHA описывает версию кода для чтения. Это независимые роли: repository и SHA могут совпасть, но service pin выбирают и проверяют отдельно, а не копируют из planning provenance.
 
 ## 1. Проверьте источник и подготовьте staging
 
@@ -25,7 +25,7 @@ npm ci
 npm run setup
 ```
 
-Источник планирования должен быть Git root, находиться ровно на `<PLANNING_SHA>`, иметь HTTPS origin и пустой status. Helper проверит эти условия, найдёт весь `openspec/specs/` и все активные каталоги `openspec/changes/*`, кроме `archive`, потребует хотя бы один активный Change и pending-задачи в каждом `tasks.md`.
+Источник планирования должен быть Git root, находиться ровно на `<PLANNING_SHA>`, иметь HTTPS origin без username/password и пустой status. Helper проверит эти условия до записи, не выводит отклонённый URL, найдёт весь `openspec/specs/` и все активные каталоги `openspec/changes/*`, кроме `archive`, потребует хотя бы один активный Change и pending-задачи в каждом `tasks.md`.
 
 Создайте только новую staging-папку:
 
@@ -80,7 +80,10 @@ done < <(git ls-tree -d --name-only HEAD:openspec/changes)
 mkdir -p openspec/specs docs/course
 cp -R "$staged_import/openspec/specs/." openspec/specs/
 while IFS= read -r inherited_change; do
-  test ! -e "openspec/changes/$inherited_change"
+  if [ -e "openspec/changes/$inherited_change" ]; then
+    echo "STOP: target Change already exists: $inherited_change" >&2
+    exit 1
+  fi
   cp -R "$staged_import/openspec/changes/$inherited_change" openspec/changes/
 done < <(node -e '
   const manifest = require(process.argv[1]);

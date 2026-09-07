@@ -1,11 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { readLock } from "../scripts/config.js";
-import { readPlanningProvenance } from "../scripts/course-context.js";
+import { assertInheritedTraceability, readPlanningProvenance } from "../scripts/course-context.js";
 
 const root = resolve(import.meta.dirname, "..");
 const planningManifest = resolve(root, "docs/course/planning-provenance.json");
@@ -42,7 +43,8 @@ test("prepared personal context separates planning provenance from the service p
     return;
   }
   const [provenance, lock] = await Promise.all([readPlanningProvenance(root), readLock()]);
-  assert.notEqual(provenance.source.commit, lock.commit);
+  assert.match(provenance.source.commit, /^[0-9a-f]{40}$/u);
+  assert.match(lock.commit, /^[0-9a-f]{40}$/u);
   assert.equal(provenance.source.workspace, ".workspace/planning/stage-3");
   assert.ok(provenance.imports.activeChanges.length >= 1);
   assert.deepEqual(provenance.imports.activeChanges, [...provenance.imports.activeChanges].sort());
@@ -80,6 +82,10 @@ test("analyst clones the organizer-published personal base before setup", async 
   assert.match(readme, /git clone --branch course\/<LOGIN>\/stage-4-import-base --single-branch/u);
   assert.match(readme, /opencode[\s\S]*?setup-analysis-workspace[\s\S]*?npm ci[\s\S]*?npm run setup/u);
   assert.match(readme, /npm run bootstrap\n+npm run bootstrap/u);
+  const permissionGate = readme.indexOf("Только после такого разрешения выполните:");
+  const learnerRegistration = readme.indexOf("npm exec openspec -- store register .", permissionGate);
+  assert.ok(permissionGate >= 0 && learnerRegistration > permissionGate);
+  assert.match(readme, /store register \.[\s\S]*?--id sdd-credit-calculator-product-meta --yes --json[\s\S]*?store doctor sdd-credit-calculator-product-meta --json/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-import-base/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-amount-limits/u);
   assert.match(readme, /Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость/u);
@@ -89,6 +95,43 @@ test("analyst clones the organizer-published personal base before setup", async 
   assert.match(organizer, /XDG_DATA_HOME="\$course_xdg" npm run bootstrap\nXDG_DATA_HOME="\$course_xdg" npm run bootstrap/u);
   assert.match(organizer, /не выполняйте unregister\/remove/iu);
   assert.match(organizer, /Публикация import-base не является человеческим review/u);
+  assert.match(organizer, /if \[ -e "openspec\/changes\/\$inherited_change" \]; then[\s\S]*?STOP: target Change already exists[\s\S]*?exit 1[\s\S]*?cp -R/u);
+});
+
+test("organizer copy guard stops before overwriting an inherited Change", async () => {
+  const organizer = await readFile(resolve(root, "docs/organizer-stage-4.md"), "utf8");
+  const copyBlock = organizer.match(/```bash\n(mkdir -p openspec\/specs docs\/course[\s\S]*?cp docs\/templates\/requirements-traceability\.md docs\/course\/requirements-traceability\.md)\n```/u)?.[1];
+  assert.ok(copyBlock, "organizer copy block must remain executable");
+
+  const fixture = await mkdtemp(resolve(tmpdir(), "course-organizer-copy-"));
+  const target = resolve(fixture, "target");
+  const staged = resolve(fixture, "staged");
+  const change = "existing-change";
+  try {
+    await mkdir(resolve(target, "openspec/changes", change), { recursive: true });
+    await mkdir(resolve(staged, "openspec/specs"), { recursive: true });
+    await mkdir(resolve(staged, "openspec/changes", change), { recursive: true });
+    await mkdir(resolve(staged, "docs/course"), { recursive: true });
+    await writeFile(resolve(target, "openspec/changes", change, "preserved.txt"), "original\n");
+    await writeFile(resolve(staged, "openspec/changes", change, "must-not-copy.txt"), "replacement\n");
+    await writeFile(resolve(staged, "docs/course/planning-provenance.json"), JSON.stringify({
+      imports: { activeChanges: [change] },
+    }));
+
+    const failure = await promisify(execFile)("/bin/bash", ["-c", copyBlock], {
+      cwd: target,
+      env: { ...process.env, staged_import: staged },
+    }).then(
+      () => undefined,
+      (error: unknown) => error as Error & { stderr?: string },
+    );
+    assert.ok(failure, "copy block must stop when an inherited Change already exists");
+    assert.match(failure.stderr ?? "", /STOP: target Change already exists: existing-change/u);
+    await access(resolve(target, "openspec/changes", change, "preserved.txt"));
+    await assert.rejects(access(resolve(target, "openspec/changes", change, "must-not-copy.txt")));
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
 });
 
 test("OpenCode receives the Store-aware OpenSpec workflows from the repository", async () => {
@@ -130,9 +173,9 @@ test("stage 4 preserves the inherited planning contract before the dependent Cha
   assert.match(readme, /точный Git-tree inventory, blob OID, SHA-256/u);
   if (prepared) {
     const provenance = await readPlanningProvenance(root);
+    await assertInheritedTraceability(root, traceability, provenance);
     for (const change of provenance.imports.activeChanges) {
       assert.match(transfer, new RegExp(change, "u"));
-      assert.match(traceability, new RegExp(change, "u"));
     }
     assert.doesNotMatch(config, /add-reset-and-years-term|add-payment-summary/u);
   } else {

@@ -128,6 +128,78 @@ function capturedSha(content: string, label: string): string {
   return sha;
 }
 
+type TraceabilityRow = Readonly<{
+  requirement: string;
+  source: string;
+  owner: string;
+  state: string;
+  task: string;
+}>;
+
+function plainCell(value: string): string {
+  return value.trim().replace(/^`|`$/gu, "");
+}
+
+function traceabilityRows(content: string): TraceabilityRow[] {
+  return content.split("\n").flatMap((rawLine) => {
+    const line = rawLine.replace(/\r$/u, "");
+    if (!line.startsWith("|") || !line.endsWith("|")) return [];
+    const cells = line.slice(1, -1).split("|").map(plainCell);
+    if (cells.length < 7 || cells[0] === "Требование / сценарий" || /^-+$/u.test(cells[0] ?? "")) return [];
+    return [{
+      requirement: cells[0]!,
+      source: cells[1]!,
+      owner: cells[2]!,
+      state: cells[3]!,
+      task: cells[4]!,
+    }];
+  });
+}
+
+function requirementNames(spec: string, path: string): string[] {
+  const names = [...spec.matchAll(/^### Requirement:\s+(.+?)\s*$/gmu)].map((match) => match[1]!.trim());
+  if (new Set(names).size !== names.length) {
+    throw new Error(`${path}: duplicate Requirement heading`);
+  }
+  return names;
+}
+
+export async function assertInheritedTraceability(
+  projectRoot: string,
+  traceability: string,
+  provenance: PlanningProvenance,
+): Promise<void> {
+  const rows = traceabilityRows(traceability);
+  const specPaths = provenance.files.map(({ path }) => path).filter((path) => path.endsWith("/spec.md")
+    && (path.startsWith(`${provenance.imports.mainSpecsRoot}/`)
+      || provenance.imports.activeChanges.some((change) => path.startsWith(`openspec/changes/${change}/specs/`))));
+  for (const specPath of specPaths) {
+    const activeChange = provenance.imports.activeChanges.find((change) => (
+      specPath.startsWith(`openspec/changes/${change}/specs/`)
+    ));
+    const owner = activeChange ?? "main specs";
+    const spec = await requireFile(projectRoot, specPath);
+    for (const requirement of requirementNames(spec, specPath)) {
+      const row = rows.find((candidate) => candidate.requirement === requirement
+        && candidate.owner === specPath);
+      if (!row) {
+        throw new Error(`docs/course/requirements-traceability.md: missing inherited requirement row for ${owner}: ${requirement}`);
+      }
+      if (!row.source.includes(provenance.source.repository)
+        || !row.source.includes(provenance.source.commit)
+        || !row.source.includes(specPath)) {
+        throw new Error(`docs/course/requirements-traceability.md: inherited row has wrong source for ${owner}: ${requirement}`);
+      }
+      if (activeChange && row.state !== "pending implementation") {
+        throw new Error(`docs/course/requirements-traceability.md: inherited row status changed for ${activeChange}: ${requirement}`);
+      }
+      if (activeChange && !row.task.includes(`${activeChange}/tasks.md`)) {
+        throw new Error(`docs/course/requirements-traceability.md: inherited row has no pending task mapping for ${activeChange}: ${requirement}`);
+      }
+    }
+  }
+}
+
 async function walkFiles(projectRoot: string, rootPath: string): Promise<string[]> {
   const files: string[] = [];
   const visit = async (relativeDirectory: string): Promise<void> => {
@@ -271,9 +343,6 @@ export async function assertPreparedCourseContext(
     if (!transfer.includes(changeRoot)) {
       throw new Error(`docs/course/stage-3-transfer.md does not name imported active Change path ${changeRoot}`);
     }
-    if (!traceability.includes(change) || !traceability.includes("pending implementation")) {
-      throw new Error(`docs/course/requirements-traceability.md does not map pending imported Change ${change}`);
-    }
     const tasks = await requireFile(projectRoot, `${changeRoot}/tasks.md`);
     const pendingTasks = tasks.match(/^- \[ \]/gmu) ?? [];
     if (pendingTasks.length === 0 || /- \[[xX]\]/u.test(tasks)) {
@@ -283,8 +352,9 @@ export async function assertPreparedCourseContext(
   if (!transfer.includes(provenance.imports.mainSpecsRoot)) {
     throw new Error(`docs/course/stage-3-transfer.md does not name imported main specs root ${provenance.imports.mainSpecsRoot}`);
   }
-  if (/<(?:R3_SOURCE|INHERITED_SCENARIO|INHERITED_PENDING_TASK)>/u.test(traceability)) {
+  if (/<[A-Z0-9_]+>/u.test(traceability)) {
     throw new Error("docs/course/requirements-traceability.md still contains inherited-context placeholders");
   }
+  await assertInheritedTraceability(projectRoot, traceability, provenance);
   await assertImportedPlanningMatchesSource(projectRoot, sourceWorkspace, provenance);
 }

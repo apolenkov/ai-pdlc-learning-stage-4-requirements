@@ -12,6 +12,7 @@ import {
 import type { PlanningProvenance } from "../scripts/course-context.js";
 
 const run = promisify(execFile);
+const projectRoot = resolve(import.meta.dirname, "..");
 const planningUrl = "https://example.invalid/learner-planning.git";
 const serviceCommit = "1".repeat(40);
 
@@ -55,6 +56,7 @@ async function createMetaFromStage(
   staged: string,
   sourceCommit: string,
   changes: readonly string[],
+  serviceSha = serviceCommit,
 ): Promise<string> {
   const target = resolve(parent, name);
   await mkdir(resolve(target, "docs/course"), { recursive: true });
@@ -66,13 +68,18 @@ async function createMetaFromStage(
   await writeFile(resolve(target, "docs/course/stage-3-transfer.md"), [
     `- Planning source repository: \`${planningUrl}\``,
     `- Planning source SHA: \`${sourceCommit}\``,
-    `- Service context SHA in \`services.lock.yaml\`: \`${serviceCommit}\``,
+    `- Service context SHA in \`services.lock.yaml\`: \`${serviceSha}\``,
     "- Main specs source/target: `openspec/specs/`",
     ...changes.map((change) => `- Active Change source/target: \`openspec/changes/${change}/\``),
     "",
   ].join("\n"));
   await writeFile(resolve(target, "docs/course/requirements-traceability.md"), [
-    ...changes.map((change) => `${change} — inherited requirement — pending implementation`),
+    "| Требование / сценарий | Источник: repo + SHA + путь | Владеющий артефакт Store | Состояние до R4 | Незавершённая task | Проверка результата | Решение / review |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
+    ...changes.map((change) => {
+      const specPath = `openspec/changes/${change}/specs/credit-calculator/spec.md`;
+      return `| ${change} | ${planningUrl}@${sourceCommit}:${specPath} | ${specPath} | pending implementation | openspec/changes/${change}/tasks.md: 1.1 | Pending | pending |`;
+    }),
     "",
   ].join("\n"));
   await writeFile(resolve(target, "services.lock.yaml"), [
@@ -80,7 +87,7 @@ async function createMetaFromStage(
     "services:",
     "  credit-calculator:",
     "    repository: https://example.invalid/service.git",
-    `    commit: ${serviceCommit}`,
+    `    commit: ${serviceSha}`,
     "    workspace: .workspace/services/credit-calculator",
     "",
   ].join("\n"));
@@ -146,6 +153,22 @@ test("stage resolves a symlinked output parent before enforcing source separatio
   const fixture = await mkdtemp(resolve(tmpdir(), "course-import-path-"));
   try {
     const planning = await createPlanningSource(fixture, ["add-reset-and-years-term"]);
+    const traversedOutput = `${planning.source}/../allowed-output`;
+    await stageCourseImport({ ...planning, output: traversedOutput });
+    await access(resolve(fixture, "allowed-output/docs/course/planning-provenance.json"));
+
+    const invalidOutputs = [
+      resolve(planning.source, "..cache", "output"),
+      resolve(planning.source, "new-parent", "output"),
+    ];
+    for (const output of invalidOutputs) {
+      await assert.rejects(
+        stageCourseImport({ ...planning, output }),
+        /stage output must be outside the planning source checkout/u,
+      );
+      await assert.rejects(access(output));
+    }
+
     const sourceAlias = resolve(fixture, "source-alias");
     await symlink(planning.source, sourceAlias, "dir");
     await assert.rejects(
@@ -153,6 +176,10 @@ test("stage resolves a symlinked output parent before enforcing source separatio
       /stage output must be outside the planning source checkout/u,
     );
     await assert.rejects(access(resolve(planning.source, "must-not-exist")));
+    const { stdout: sourceStatus } = await run("git", [
+      "-C", planning.source, "status", "--porcelain=v1", "--untracked-files=all",
+    ]);
+    assert.equal(sourceStatus, "", "invalid outputs must not mutate the planning source");
 
     const brokenOutput = resolve(fixture, "broken-output");
     await symlink(resolve(fixture, "missing-target"), brokenOutput);
@@ -160,6 +187,54 @@ test("stage resolves a symlinked output parent before enforcing source separatio
       stageCourseImport({ ...planning, output: brokenOutput }),
       /stage output already exists/u,
     );
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
+});
+
+test("stage and its CLI reject HTTPS origins with userinfo without exposing it", async () => {
+  const fixture = await mkdtemp(resolve(tmpdir(), "course-import-origin-"));
+  const credential = "fixture-password-must-not-leak";
+  try {
+    const planning = await createPlanningSource(fixture, ["add-reset-and-years-term"]);
+    await run("git", [
+      "-C", planning.source,
+      "remote", "set-url", "origin",
+      `https://fixture-user:${credential}@example.invalid/learner-planning.git`,
+    ]);
+    const directOutput = resolve(fixture, "direct-output");
+    await assert.rejects(
+      stageCourseImport({ ...planning, output: directOutput }),
+      (error: unknown) => {
+        assert.ok(error instanceof Error);
+        assert.match(error.message, /credential-free HTTPS URL/u);
+        assert.doesNotMatch(error.message, /fixture-user|fixture-password/u);
+        return true;
+      },
+    );
+    await assert.rejects(access(directOutput));
+
+    const cliOutput = resolve(fixture, "cli-output");
+    const cliFailure = await run(
+      resolve(projectRoot, "node_modules/.bin/tsx"),
+      [
+        resolve(projectRoot, "scripts/prepare-course-import.ts"),
+        "stage",
+        "--source", planning.source,
+        "--commit", planning.commit,
+        "--output", cliOutput,
+      ],
+      { cwd: projectRoot },
+    ).then(
+      () => undefined,
+      (error: unknown) => error as Error & { stdout?: string; stderr?: string },
+    );
+    assert.ok(cliFailure, "CLI must reject an origin containing userinfo");
+    const cliOutputText = `${cliFailure.stdout ?? ""}${cliFailure.stderr ?? ""}`;
+    assert.match(cliOutputText, /credential-free HTTPS URL/u);
+    assert.doesNotMatch(cliOutputText, /fixture-user|fixture-password/u);
+    assert.doesNotMatch(cliOutputText, new RegExp(credential, "u"));
+    await assert.rejects(access(cliOutput));
   } finally {
     await rm(fixture, { recursive: true, force: true });
   }
@@ -193,6 +268,14 @@ test("verify reuses the bootstrap contract and rejects loss, extra files and cha
     const seed = await createMetaFromStage(fixture, "meta-seed", staged, planning.commit, changes);
     await verifyCourseImport(planning.source, seed);
 
+    const extended = resolve(fixture, "meta-new-r4-row");
+    await run("git", ["clone", "--quiet", seed, extended]);
+    const extendedTraceabilityPath = resolve(extended, "docs/course/requirements-traceability.md");
+    const extendedTraceability = await readFile(extendedTraceabilityPath, "utf8");
+    await writeFile(extendedTraceabilityPath, `${extendedTraceability.trimEnd()}\n| Inclusive amount limits | condition R4 | openspec/changes/limit-credit-amount/specs/credit-calculator/spec.md | pending implementation | openspec/changes/limit-credit-amount/tasks.md: 1.1 | Boundary checks | pending |\n`);
+    await commitAll(extended, "add a new R4 traceability row");
+    await verifyCourseImport(planning.source, extended);
+
     const cases = [
       {
         name: "missing",
@@ -209,6 +292,24 @@ test("verify reuses the bootstrap contract and rejects loss, extra files and cha
         mutate: async (target: string) => writeFile(resolve(target, "openspec/changes/add-reset-and-years-term/proposal.md"), "changed\n"),
         expected: /planning file differs.*proposal\.md/u,
       },
+      {
+        name: "lost-inherited-row",
+        mutate: async (target: string) => {
+          const path = resolve(target, "docs/course/requirements-traceability.md");
+          const content = await readFile(path, "utf8");
+          await writeFile(path, content.split("\n").filter((line) => !line.startsWith("| add-payment-summary |")).join("\n"));
+        },
+        expected: /missing inherited requirement row for add-payment-summary/u,
+      },
+      {
+        name: "changed-inherited-status",
+        mutate: async (target: string) => {
+          const path = resolve(target, "docs/course/requirements-traceability.md");
+          const content = await readFile(path, "utf8");
+          await writeFile(path, content.replace("| pending implementation |", "| baseline |"));
+        },
+        expected: /inherited row status changed for add-payment-summary/u,
+      },
     ] as const;
     for (const candidate of cases) {
       const target = resolve(fixture, `meta-${candidate.name}`);
@@ -217,6 +318,42 @@ test("verify reuses the bootstrap contract and rejects loss, extra files and cha
       await commitAll(target, candidate.name);
       await assert.rejects(verifyCourseImport(planning.source, target), candidate.expected);
     }
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
+});
+
+test("verify allows independently selected planning and service roles to use the same SHA", async () => {
+  const fixture = await mkdtemp(resolve(tmpdir(), "course-import-same-sha-"));
+  try {
+    const changes = ["add-reset-and-years-term"];
+    const planning = await createPlanningSource(fixture, changes);
+    const mainSpecPath = "openspec/specs/credit-calculator/spec.md";
+    await mkdir(resolve(planning.source, mainSpecPath, ".."), { recursive: true });
+    await writeFile(resolve(planning.source, mainSpecPath), [
+      "## Requirements",
+      "",
+      "### Requirement: Imported source behavior",
+      "",
+      "The source records behavior without proving its runtime status.",
+      "",
+    ].join("\n"));
+    planning.commit = await commitAll(planning.source, "add a source main spec");
+    const staged = resolve(fixture, "staged");
+    await stageCourseImport({ ...planning, output: staged });
+    const target = await createMetaFromStage(
+      fixture,
+      "meta-same-sha",
+      staged,
+      planning.commit,
+      changes,
+      planning.commit,
+    );
+    const traceabilityPath = resolve(target, "docs/course/requirements-traceability.md");
+    const traceability = await readFile(traceabilityPath, "utf8");
+    await writeFile(traceabilityPath, `${traceability.trimEnd()}\n| Imported source behavior | ${planningUrl}@${planning.commit}:${mainSpecPath} | ${mainSpecPath} | runtime status not proven | not applicable | Read the imported source | pending review |\n`);
+    await commitAll(target, "map the imported main requirement without inventing baseline status");
+    await verifyCourseImport(planning.source, target);
   } finally {
     await rm(fixture, { recursive: true, force: true });
   }

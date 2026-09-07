@@ -13,7 +13,7 @@
 - Service source repository: `<SERVICE_SOURCE_REPOSITORY>`
 - Service context SHA in `services.lock.yaml`: `<SERVICE_SHA>`
 
-Повторите строку `Active Change source/target` для каждого имени из `planning-provenance.json#imports.activeChanges`. Planning SHA и service SHA описывают разные источники и не обязаны совпадать.
+Повторите строку `Active Change source/target` для каждого имени из `planning-provenance.json#imports.activeChanges`. Planning SHA и service SHA описывают независимые роли. Repository и SHA могут совпасть, но service pin нельзя выводить из planning provenance без отдельной проверки.
 
 ## Review исходной версии
 

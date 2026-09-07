@@ -136,7 +136,12 @@ async function createMetaFixture(
     "",
   ].join("\n"));
   await writeFile(resolve(meta, "docs/course/requirements-traceability.md"), [
-    ...importedChanges.map((name) => `${name} — inherited source fixture — pending implementation`),
+    "| Требование / сценарий | Источник: repo + SHA + путь | Владеющий артефакт Store | Состояние до R4 | Незавершённая task | Проверка результата | Решение / review |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
+    ...importedChanges.map((name) => {
+      const specPath = `openspec/changes/${name}/specs/credit-calculator/spec.md`;
+      return `| ${name} | ${planningUrl}@${planning.commit}:${specPath} | ${specPath} | pending implementation | openspec/changes/${name}/tasks.md: 1.1 | Pending behavior | pending |`;
+    }),
     "",
   ].join("\n"));
   await writeFile(resolve(meta, "services.lock.yaml"), [
@@ -254,7 +259,7 @@ test("bootstrap rejects dirty meta state before creating workspaces", async () =
   }
 });
 
-test("bootstrap rejects a planning SHA in place of the independent service pin", async () => {
+test("bootstrap rejects a documented service SHA that differs from the independent service pin", async () => {
   const prepared = await createPreparedBootstrapFixture("course-bootstrap-provenance-");
   try {
     const transferPath = resolve(prepared.meta, "docs/course/stage-3-transfer.md");
