@@ -65,13 +65,25 @@ test("OpenSpec Store identity is committed and points to this meta repository", 
 });
 
 test("Store setup uses the official CLI without a custom wrapper", async () => {
-  const packageJson = await readFile(resolve(root, "package.json"), "utf8");
-  const skill = await readFile(resolve(root, ".agents/skills/setup-analysis-workspace/SKILL.md"), "utf8");
+  const [packageJson, skill, readme, agents] = await Promise.all([
+    readFile(resolve(root, "package.json"), "utf8"),
+    readFile(resolve(root, ".agents/skills/setup-analysis-workspace/SKILL.md"), "utf8"),
+    readFile(resolve(root, "README.md"), "utf8"),
+    readFile(resolve(root, "AGENTS.md"), "utf8"),
+  ]);
   await assert.rejects(access(resolve(root, "scripts/store.ts")));
   assert.doesNotMatch(packageJson, /store:ensure/u);
   assert.match(skill, /npm ci/u);
   assert.match(skill, /npm run setup/u);
   assert.doesNotMatch(skill, /openspec -- store (?:register|unregister)/u);
+  assert.match(readme, /git rev-parse --show-toplevel.*\.agents\/skills\/setup-analysis-workspace\/SKILL\.md/su);
+  assert.match(readme, /полный путь выбранного SKILL\.md.*базовая папка равна\s+<git-root>\/\.agents\/skills\/setup-analysis-workspace/su);
+  assert.match(readme, /глобальный \/Users\/wrk\/\.agents\/skills.*НЕ выполняй его.*project-файлу/su);
+  assert.match(readme, /npm ci ровно один раз.*npm run setup ровно\s+один раз/su);
+  assert.match(readme, /уже успешно завершились.*не повторяй\s+их.*покажи только Git root и status/su);
+  assert.match(agents, /<git-root>\/\.agents\/skills\/setup-analysis-workspace\/SKILL\.md/u);
+  assert.match(agents, /Одноимённый глобальный или любой другой skill не выполнять/u);
+  assert.match(agents, /npm ci` ровно один раз.*один `npm run setup`/su);
 });
 
 test("analyst clones the organizer-published personal base before setup", async () => {

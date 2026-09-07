@@ -24,7 +24,7 @@
 ## Порядок входа ученика
 
 1. Клонировать опубликованную personal import-base в папку `sdd-credit-calculator-product-meta-example` и проверить branch/SHA/status.
-2. Из этого корня запустить `opencode` и явно вызвать project skill `setup-analysis-workspace`. Skill выполняет `npm ci`, один `npm run setup`, проверяет чистоту до и после и останавливается.
+2. Из этого корня запустить `opencode`, получить Git root и прочитать целиком именно `<git-root>/.agents/skills/setup-analysis-workspace/SKILL.md`. До команд агент показывает выбранный полный путь и подтверждает, что base directory равна `<git-root>/.agents/skills/setup-analysis-workspace`. Одноимённый глобальный или любой другой skill не выполнять: project-файл запускает `npm ci` ровно один раз, затем один `npm run setup`, проверяет чистоту до и после и останавливается. Если обе команды уже успешно завершились, не повторять их — показать только root/status.
 3. Проверить Store ID/root. Отсутствующая регистрация требует явного разрешения организатора; другой root — STOP без unregister/remove или автоматического переназначения.
 4. При правильном root выполнить два отдельных `npm run bootstrap`, затем проверить чистоту meta, planning и service snapshots.
 5. Только после этого создать рабочую ветку, пройти original `grill-with-docs`, при оставшейся существенной развилке OpenSpec Explore, затем OpenSpec Propose и человеческое review.

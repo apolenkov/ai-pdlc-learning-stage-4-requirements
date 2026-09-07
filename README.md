@@ -46,16 +46,43 @@ git rev-parse HEAD
 opencode
 ```
 
+Имя `setup-analysis-workspace` может совпасть с глобальным skill. Выбирать его
+только по имени нельзя: сначала привяжите инструкцию к проверенному Git root.
+
 Отправьте сообщение:
 
 ```text
-Используй project skill setup-analysis-workspace. Подготовь этот checkout
-строго по его инструкции и остановись после отчёта о npm ci, npm run setup
-и заключительном чистом git status. Не регистрируй Store, не запускай
-bootstrap, не создавай ветку или Change, не выполняй commit и push.
+Сначала выполни git rev-parse --show-toplevel и покажи полный Git root.
+Внутри именно этого root найди и прочитай целиком
+.agents/skills/setup-analysis-workspace/SKILL.md. До любых команд покажи
+полный путь выбранного SKILL.md и подтверди, что его базовая папка равна
+<git-root>/.agents/skills/setup-analysis-workspace. Если имя
+setup-analysis-workspace разрешается в глобальный ~/.agents/skills
+или любой другой файл, НЕ выполняй его: прочитай и следуй project-файлу
+напрямую.
+
+По project-файлу выполни npm ci ровно один раз, затем npm run setup ровно
+один раз. Сохрани exit status каждой исходной команды и в конце покажи git
+status. Если обе команды уже успешно завершились в этой сессии, не повторяй
+их: покажи только Git root и status и остановись. STOP после чистого setup.
+Не регистрируй Store, не запускай bootstrap, не создавай ветку/Change, не
+делай commit или push и не меняй настройки провайдера.
 ```
 
-Skill выполняет `npm ci` и `npm run setup`, проверяя чистоту Git до и после. Если команда завершилась ошибкой или status изменился, подготовка не окончена; не чините package/lock догадками.
+Project-файл выполняет `npm ci` и один `npm run setup`, проверяя чистоту Git
+до и после. Если OpenCode показывает другой полный путь к skill, не запускайте
+его и потребуйте прочитать файл внутри текущего Git root напрямую. Если команда
+завершилась ошибкой или status изменился, подготовка не окончена; не чините
+package/lock догадками.
+
+Если успешные `npm ci` и `npm run setup` уже были выполнены, используйте
+короткое recovery-сообщение и не запускайте setup повторно:
+
+```text
+STOP. Не повторяй npm ci или npm run setup. Покажи git rev-parse
+--show-toplevel и git status --short --branch, подтверди уже полученные exit
+status 0 и остановись. Не запускай глобальный skill, Store или bootstrap.
+```
 
 ## 3. Проверьте Store root
 
