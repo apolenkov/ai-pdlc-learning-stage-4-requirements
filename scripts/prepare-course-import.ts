@@ -17,6 +17,10 @@ const planningWorkspace = ".workspace/planning/stage-3" as const;
 
 type TreeFile = Readonly<{ path: string; blob: string }>;
 
+function compareTreeFiles(left: TreeFile, right: TreeFile): number {
+  return left.path < right.path ? -1 : left.path > right.path ? 1 : 0;
+}
+
 export type StageCourseImportOptions = Readonly<{
   source: string;
   commit: string;
@@ -112,7 +116,7 @@ async function inspectSource(sourceInput: string, commit: string): Promise<{
     const match = entry.match(/^100644 blob ([0-9a-f]{40})\t(.+)$/u);
     if (!match?.[1] || !match[2]) throw new Error(`planning source contains unsupported entry: ${entry}`);
     return { blob: match[1], path: match[2] };
-  }).sort((left, right) => left.path.localeCompare(right.path));
+  }).sort(compareTreeFiles);
   const activeChanges = [...new Set(treeFiles.flatMap(({ path }) => {
     const match = path.match(/^openspec\/changes\/([^/]+)\//u);
     return match?.[1] && match[1] !== "archive" ? [match[1]] : [];

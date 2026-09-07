@@ -106,6 +106,10 @@ test("stage derives exact inventory for one or several active Changes without im
     await assert.rejects(access(resolve(oneOutput, "openspec/changes/archive/.gitkeep")));
 
     await writeChange(planning.source, "add-payment-summary");
+    await writeFile(
+      resolve(planning.source, "openspec/changes/add-reset-and-years-term/README.md"),
+      "# Mixed-case inventory fixture\n",
+    );
     planning.commit = await commitAll(planning.source, "add optional AI Change");
     const twoOutput = resolve(fixture, "stage-two");
     const two = await stageCourseImport({ ...planning, output: twoOutput });
@@ -120,9 +124,24 @@ test("stage derives exact inventory for one or several active Changes without im
       "openspec/specs",
       ...two.activeChanges.map((change) => `openspec/changes/${change}`),
     ]);
-    assert.deepEqual(manifest.files.map(({ path }) => path), stdout.trim().split("\n").sort());
+    const manifestPaths = manifest.files.map(({ path }) => path);
+    assert.deepEqual(manifestPaths, stdout.trim().split("\n").sort());
+    assert.ok(
+      manifestPaths.indexOf("openspec/changes/add-reset-and-years-term/README.md")
+        < manifestPaths.indexOf("openspec/changes/add-reset-and-years-term/design.md"),
+      "mixed-case paths must use locale-independent lexical ordering",
+    );
     assert.equal(manifest.source.commit, planning.commit);
     assert.equal(manifest.source.repository, planningUrl);
+
+    const target = await createMetaFromStage(
+      fixture,
+      "meta-mixed-case-inventory",
+      twoOutput,
+      planning.commit,
+      two.activeChanges,
+    );
+    await verifyCourseImport(planning.source, target);
   } finally {
     await rm(fixture, { recursive: true, force: true });
   }

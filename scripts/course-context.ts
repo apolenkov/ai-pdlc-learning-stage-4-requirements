@@ -31,6 +31,10 @@ export type PlanningProvenance = Readonly<{
 
 type SourceTreeFile = Readonly<{ path: string; blob: string }>;
 
+function compareSourceTreeFiles(left: SourceTreeFile, right: SourceTreeFile): number {
+  return left.path < right.path ? -1 : left.path > right.path ? 1 : 0;
+}
+
 const sha256 = (content: Buffer): string => createHash("sha256").update(content).digest("hex");
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -229,7 +233,7 @@ async function sourceTreeFiles(sourceWorkspace: string, commit: string): Promise
       throw new Error(`planning source tree contains unsupported entry: ${entry}`);
     }
     return { blob: match[1], path: match[2] };
-  }).sort((left, right) => left.path.localeCompare(right.path));
+  }).sort(compareSourceTreeFiles);
 }
 
 async function gitBlob(repository: string, blob: string): Promise<Buffer> {
