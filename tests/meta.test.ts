@@ -102,7 +102,7 @@ test("analyst clones the organizer-published personal base before setup", async 
   assert.match(readme, /course\/<LOGIN>\/stage-4-import-base/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-amount-limits/u);
   assert.match(readme, /Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость/u);
-  assert.match(readme, /учебный PR закрывается без слияния|закройте учебный PR без слияния/u);
+  assert.match(readme, /смёржьте учебный PR в личную base-ветку/u);
   assert.match(readme, /задачи реализации остаются `- \[ \]`/u);
   assert.match(contributing, /Ученик сам клонирует опубликованную ветку/u);
   assert.match(organizer, /XDG_DATA_HOME="\$course_xdg" npm run bootstrap\nXDG_DATA_HOME="\$course_xdg" npm run bootstrap/u);

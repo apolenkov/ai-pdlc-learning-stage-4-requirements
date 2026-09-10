@@ -26,7 +26,7 @@ test("small changes skip Explore only after decisions are closed", async () => {
 test("unknown facts remain questions and Propose stops at the human gate", async () => {
   const agents = await readFile(resolve(root, "AGENTS.md"), "utf8");
   assert.match(agents, /Не придумывайте отсутствующие факты: оставляйте их открытыми вопросами/u);
-  assert.match(agents, /OpenSpec Propose создаёт полный planning-набор/u);
+  assert.match(agents, /OpenSpec Propose создаёт полный набор планирования/u);
   assert.match(agents, /останавливается на человеческой проверке/u);
   assert.match(agents, /Apply запускается отдельно только после принятия/u);
 });

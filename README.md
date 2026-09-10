@@ -4,7 +4,7 @@
 
 ```text
 личный Git SHA результата R3 или R3-ИИ
-              │ организатор переносит весь planning inventory
+              │ организатор переносит весь набор планирования
               ▼
 personal import-base в product-meta ── публикация ветки
               │ ученик клонирует её сам
@@ -26,7 +26,7 @@ sdd-credit-calculator-product-meta-example/
 
 Точные команды приведены в [инструкции разработчика](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md).
 
-Planning SHA и service SHA фиксируют независимые роли: происхождение требований и версию кода для чтения. Репозитории и SHA могут совпасть, но service pin выбирают и проверяют отдельно, а не копируют из planning provenance. Код сервиса на этой ступени не меняется, Apply не запускается, задачи реализации остаются `- [ ]`.
+SHA планирования и service SHA фиксируют независимые роли: происхождение требований и версию кода для чтения. Репозитории и SHA могут совпасть, но service pin выбирают и проверяют отдельно, а не копируют из planning provenance. Код сервиса на этой ступени не меняется, Apply не запускается, задачи реализации остаются `- [ ]`.
 
 ## Два честных входа
 
@@ -43,6 +43,8 @@ git clone --branch course/<LOGIN>/stage-4-import-base --single-branch \
   https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git \
   sdd-credit-calculator-product-meta-example
 cd sdd-credit-calculator-product-meta-example
+fork_url="<CORPORATE_FORK_URL>"
+git remote get-url fork || git remote add fork "$fork_url"
 git status --short --branch
 git rev-parse HEAD
 ```
@@ -149,7 +151,7 @@ Bootstrap сверяет source repository/SHA, точный Git-tree inventory,
 - весь `openspec/specs/`;
 - каждый Change из `imports.activeChanges` manifest.
 
-После обычной R3 источник содержит минимум один активный Change. После необязательной R3-ИИ их может быть два или больше. Не требуйте фиксированное имя второго Change, число файлов, строк матрицы или сценариев: источником правды служат Git tree, manifest и сами артефакты. В каждом импортированном `tasks.md` все задачи должны оставаться pending.
+После обычной R3 источник содержит минимум один активный Change. После необязательной R3-ИИ их может быть два или больше. Не требуйте фиксированное имя второго Change, число файлов, строк матрицы или сценариев: источником правды служат Git tree, manifest и сами артефакты. В каждом импортированном `tasks.md` все задачи должны оставаться незавершёнными.
 
 Служебные Changes самого шаблона не относятся к истории ученика и не входят в imported inventory. Новый `limit-credit-amount` должен учитывать каждый импортированный активный Change, который реально присутствует.
 
@@ -232,10 +234,14 @@ git add openspec/changes/limit-credit-amount docs/course/requirements-traceabili
 git diff --cached
 git status --short
 git commit -m "docs: propose inclusive credit amount limits"
-git push -u origin course/<LOGIN>/stage-4-amount-limits
+fork_url="<CORPORATE_FORK_URL>"
+git remote get-url fork || git remote add fork "$fork_url"
+push_remote=fork
+git push -u "$push_remote" course/<LOGIN>/stage-4-amount-limits
+git ls-remote --heads "$push_remote" course/<LOGIN>/stage-4-amount-limits
 ```
 
-Откройте planning PR в личную `course/<LOGIN>/stage-4-import-base`, не в общую `main`. Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость. После содержательных правок оба review повторяются для актуального diff. После двух подтверждений сохраните ветку и закройте учебный PR без слияния.
+Откройте planning PR в личную `course/<LOGIN>/stage-4-import-base`, не в общую `main`. Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость. После содержательных правок оба review повторяются для актуального diff. После двух подтверждений сохраните ветку и смёржьте учебный PR в личную base-ветку своего корпоративного fork; в общую `main` не сливайте.
 
 ## STOP: реализация отдельно
 
