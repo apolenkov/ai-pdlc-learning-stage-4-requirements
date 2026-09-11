@@ -13,7 +13,7 @@
 - `<META_REPOSITORY_URL>` — HTTPS URL метарепозитория;
 - `<REVIEW_REFERENCE>` — ссылки или точные ссылки на актуальные человеческие review.
 
-Planning SHA описывает происхождение требований. Service SHA описывает версию кода для чтения. Это независимые роли: repository и SHA могут совпасть, но service pin выбирают и проверяют отдельно, а не копируют из planning provenance.
+SHA планирования описывает происхождение требований. Service SHA описывает версию кода для чтения. Это независимые роли: repository и SHA могут совпасть, но service pin выбирают и проверяют отдельно, а не копируют из planning provenance.
 
 ## 1. Проверьте источник и подготовьте staging
 
@@ -96,7 +96,7 @@ cp docs/templates/requirements-traceability.md docs/course/requirements-traceabi
 
 Заполните оба файла в `docs/course/` без оставшихся `<...>`. В transfer перечислите все активные Changes из manifest, `<PLANNING_SHA>`, отдельный `<SERVICE_SHA>` и фактические review. В traceability добавьте каждое унаследованное требование и сценарий; не подгоняйте строки под заранее заданное число.
 
-Для новой personal import-base используйте сервис `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code.git` и отдельно проверенный полный `<SERVICE_SHA>` из актуального `services.lock.yaml` эталона. Planning provenance по-прежнему указывает на исходный результат R3 или R3-ИИ: не заменяйте его адресом нового сервиса и не записывайте planning SHA в service pin. Уже опубликованные личные базы и их pins не меняйте автоматически. В `openspec/config.yaml` не перечисляйте случайный фиксированный набор унаследованных Changes: источником служит manifest.
+Для новой personal import-base используйте сервис `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code.git` и отдельно проверенный полный `<SERVICE_SHA>` из актуального `services.lock.yaml` эталона. Происхождение планирования по-прежнему указывает на исходный результат R3 или R3-ИИ: не заменяйте его адресом нового сервиса и не записывайте SHA планирования в service pin. Уже опубликованные личные базы и их pins не меняйте автоматически. В `openspec/config.yaml` не перечисляйте случайный фиксированный набор унаследованных Changes: источником служит manifest.
 
 ## 3. Проверьте точность переноса
 
@@ -158,7 +158,7 @@ git push -u origin course/<LOGIN>/stage-4-import-base
 git ls-remote --heads origin course/<LOGIN>/stage-4-import-base
 ```
 
-Передайте ученику `<META_REPOSITORY_URL>`, точное имя ветки, planning SHA и ожидаемый commit personal base. Ученик сам клонирует её в каноническую папку `sdd-credit-calculator-product-meta-example`, запускает `opencode` и вызывает project skill `setup-analysis-workspace`.
+Передайте ученику `<META_REPOSITORY_URL>`, точное имя ветки, SHA планирования и ожидаемый commit personal base. Ученик сам клонирует её в каноническую папку `sdd-credit-calculator-product-meta-example`, запускает `opencode` и вызывает project skill `setup-analysis-workspace`.
 Для будущей реализации отдельно передайте URL сервиса из `services.lock.yaml`, его полный SHA и [инструкцию разработчика](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md). Это не разрешает Apply и не требует заменять существующую рабочую папку ученика.
 
 В пользовательской среде регистрация проверяется заново. Если Store ID отсутствует, ученик останавливается и получает явное разрешение организатора зарегистрировать именно этот checkout. Если ID указывает на другой root, требуется решение владельца среды: не выполняйте unregister/remove и не переназначайте регистрацию автоматически.

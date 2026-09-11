@@ -13,7 +13,7 @@
 - Service source repository: `<SERVICE_SOURCE_REPOSITORY>`
 - Service context SHA in `services.lock.yaml`: `<SERVICE_SHA>`
 
-Повторите строку `Active Change source/target` для каждого имени из `planning-provenance.json#imports.activeChanges`. Planning SHA и service SHA описывают независимые роли. Repository и SHA могут совпасть, но service pin нельзя выводить из planning provenance без отдельной проверки.
+Повторите строку `Active Change source/target` для каждого имени из `planning-provenance.json#imports.activeChanges`. SHA планирования и service SHA описывают независимые роли. Repository и SHA могут совпасть, но service pin нельзя выводить из planning provenance без отдельной проверки.
 
 ## Review исходной версии
 
@@ -36,4 +36,4 @@
 
 ## Переход ownership
 
-После публикации personal import-base этот Store становится единственным активным местом изменения импортированных specs и Changes. Planning source сохраняется как история и read-only provenance snapshot. Код сервиса остаётся в отдельном репозитории; `.workspace/services/credit-calculator` используется только для чтения. Новый Change R4 создаётся поверх импорта без редактирования унаследованных файлов и без Apply.
+После публикации personal import-base этот Store становится единственным активным местом изменения импортированных specs и Changes. Источник планирования сохраняется как история и read-only provenance snapshot. Код сервиса остаётся в отдельном репозитории; `.workspace/services/credit-calculator` используется только для чтения. Новый Change R4 создаётся поверх импорта без редактирования унаследованных файлов и без Apply.
