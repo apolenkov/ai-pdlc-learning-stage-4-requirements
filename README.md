@@ -1,15 +1,17 @@
 # Ступень 4. ИИ и продуктовый OpenSpec Store
 
-Это четвёртая аналитическая ступень. Аналитик работает в одном личном checkout метарепозитория, а два закреплённых снимка в `.workspace/` использует только для проверки:
+Это четвёртая аналитическая ступень. Аналитик работает в личном fork
+метарепозитория, а два закреплённых снимка в `.workspace/` использует только для
+проверки:
 
 ```text
 личный Git SHA результата R3 или R3-ИИ
               │ организатор переносит весь набор планирования
               ▼
 personal import-base в product-meta ── публикация ветки
-              │ ученик клонирует её сам
+              │ ученик копирует все ветки в fork и клонирует свой fork
               ▼
-sdd-credit-calculator-product-meta-example/
+sdd-guide-credit-calculator-stage-4-requirements/
 ├── openspec/                         единственное место изменения требований
 ├── .workspace/planning/stage-3/      source provenance, только чтение
 └── .workspace/services/...           контекст сервиса, только чтение
@@ -17,16 +19,21 @@ sdd-credit-calculator-product-meta-example/
 
 Для будущей реализации готовый комплект R4 состоит из двух соседних рабочих папок:
 
-- `sdd-credit-calculator-product-meta-example/` — требования, планы Changes и задачи в `openspec/`.
-- `sdd-credit-calculator-stage-4-example/` — код в `src/` и тесты в `test/`.
+- `sdd-guide-credit-calculator-stage-4-requirements/` — требования, планы Changes и задачи в `openspec/`.
+- `sdd-guide-credit-calculator-stage-4-code/` — код в `src/` и тесты в `test/`.
 
 В папке кода `openspec/config.yaml` уже содержит указатель на Store `sdd-credit-calculator-product-meta`. Местных `openspec/specs/` и `openspec/changes/` там нет: для нового комплекта не нужно переносить или удалять старые требования. Указатель не клонирует product-meta и не регистрирует Store.
 
-Аналитическая ступень выполняется без рабочей папки кода. Разработчик клонирует её позже, после принятия требований и отдельного разрешения на реализацию. Существующие личные папки, ветки и service pins не заменяются автоматически.
+Project skill подготовки создаёт отдельный соседний checkout кода на точном service
+pin, но не создаёт в нём ветку разработки и не разрешает реализацию. Существующие
+личные папки, ветки и service pins не заменяются автоматически.
 
-Точные команды приведены в [инструкции разработчика](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md).
+Точные команды будущей реализации приведены в [инструкции разработчика](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md).
 
-SHA планирования и service SHA фиксируют независимые роли: происхождение требований и версию кода для чтения. Репозитории и SHA могут совпасть, но service pin выбирают и проверяют отдельно, а не копируют из planning provenance. Код сервиса на этой ступени не меняется, Apply не запускается, задачи реализации остаются `- [ ]`.
+Planning SHA и service SHA фиксируют независимые роли: происхождение требований и
+версию кода для чтения. Репозитории и SHA могут совпасть, но service pin выбирают
+и проверяют отдельно, а не копируют из planning provenance. Код сервиса на этой
+ступени не меняется, Apply не запускается, задачи реализации остаются `- [ ]`.
 
 ## Два честных входа
 
@@ -34,114 +41,92 @@ SHA планирования и service SHA фиксируют независи�
 
 Если вы начинаете сразу с R4, организатор указывает отдельный учебный source ref и публикует явно названную example import-base. Это пример, а не ваша вымышленная история R1–R3. Не используйте неподготовленную `main` метарепозитория как эквивалент personal import-base.
 
-## 1. Клонируйте опубликованную базу
+## 1. Создайте fork и клонируйте опубликованную базу
 
-Организатор передаёт URL метарепозитория, точное имя опубликованной import-base и SHA планирования. Убедитесь, что папки с каноническим именем ещё нет, затем выполните:
+Организатор передаёт единый договор: `<META_REPOSITORY_URL>`,
+`<IMPORT_BASE_BRANCH>` (`course/<LOGIN>/stage-4-import-base`),
+`<IMPORT_BASE_SHA>`, исходный `<PLANNING_SHA>`, независимый `<SERVICE_SHA>` и
+`<REVIEW_REFERENCE>`. Базовую ветку создаёт организатор, ученик её не создаёт.
+
+Откройте `<META_REPOSITORY_URL>` в GitHub Enterprise, нажмите **Fork** и снимите флаг
+**Copy the main branch only**, чтобы в fork попали все ветки. Затем клонируйте
+свой fork; после clone `origin` — ваш fork:
 
 ```bash
+set -eu
 git clone --branch course/<LOGIN>/stage-4-import-base --single-branch \
-  https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git \
-  sdd-credit-calculator-product-meta-example
-cd sdd-credit-calculator-product-meta-example
-fork_url="<CORPORATE_FORK_URL>"
-git remote get-url fork || git remote add fork "$fork_url"
+  <FORK_REPOSITORY_URL> \
+  sdd-guide-credit-calculator-stage-4-requirements
+cd sdd-guide-credit-calculator-stage-4-requirements
+git remote get-url origin
+test "$(git rev-parse HEAD)" = "<IMPORT_BASE_SHA>"
 git status --short --branch
-git rev-parse HEAD
 ```
 
-Замените `<LOGIN>` и имя ветки значениями организатора. Ожидаемый результат — открыта переданная ветка, status пуст. При отсутствующей ветке, другом SHA или существующей папке остановитесь: не подставляйте `main`, не удаляйте каталог и не смешивайте две копии.
-
-## 2. Запустите OpenCode и подготовьте checkout через project skill
-
-Из корня клона запустите:
+Если ветка есть в upstream на переданном SHA, но не скопировалась в fork,
+разрешён один fail-closed fallback. Он сначала доказывает отсутствие одноимённой
+ветки в fork, затем читает только upstream и публикует проверенный SHA в `origin`:
 
 ```bash
-opencode
+set -eu
+git clone --no-checkout <FORK_REPOSITORY_URL> \
+  sdd-guide-credit-calculator-stage-4-requirements
+cd sdd-guide-credit-calculator-stage-4-requirements
+git remote add upstream <META_REPOSITORY_URL>
+existing_base=$(git ls-remote --heads origin refs/heads/course/<LOGIN>/stage-4-import-base)
+test -z "$existing_base"
+git fetch --no-tags upstream refs/heads/course/<LOGIN>/stage-4-import-base
+test "$(git rev-parse FETCH_HEAD)" = "<IMPORT_BASE_SHA>"
+git switch -c course/<LOGIN>/stage-4-import-base FETCH_HEAD
+git push -u origin course/<LOGIN>/stage-4-import-base
+remote_ref=$(git ls-remote --heads origin refs/heads/course/<LOGIN>/stage-4-import-base)
+test -n "$remote_ref"
+remote_head=${remote_ref%%[[:space:]]*}
+test "$remote_head" = "<IMPORT_BASE_SHA>"
 ```
 
-Имя `setup-analysis-workspace` может совпасть с глобальным skill. Выбирать его
-только по имени нельзя: сначала привяжите инструкцию к проверенному Git root.
+Если ветка отсутствует в upstream, SHA расходится или одноимённая ветка уже есть
+в fork, остановитесь и передайте организатору URL, ветку, ожидаемый и фактический
+SHA. Не используйте `main`, force push и запись в `upstream`; не удаляйте
+существующую папку и не смешивайте две копии.
 
-Отправьте сообщение:
+## 2. Подготовьте весь комплект через project skill
+
+Из корня клона запустите `opencode` и отправьте одно сообщение:
 
 ```text
-Сначала выполни git rev-parse --show-toplevel и покажи полный Git root.
-Внутри именно этого root найди и прочитай целиком
-.agents/skills/setup-analysis-workspace/SKILL.md. До npm ci/setup покажи
-полный путь выбранного SKILL.md и подтверди, что его базовая папка равна
-<git-root>/.agents/skills/setup-analysis-workspace. Если имя
-setup-analysis-workspace разрешается в
-~/.agents/skills/setup-analysis-workspace/SKILL.md, иной глобальный каталог
-skills или любой другой файл, НЕ выполняй его: прочитай и следуй
-project-файлу напрямую.
-
-По project-файлу выполни npm ci ровно один раз, затем npm run setup ровно
-один раз. Сохрани exit status каждой исходной команды и в конце покажи git
-status. Если обе команды уже успешно завершились в этой сессии, не повторяй
-их: покажи только Git root и status и остановись. STOP после чистого setup.
-Не регистрируй Store, не запускай bootstrap, не создавай ветку/Change, не
-делай commit или push и не меняй настройки провайдера.
+Нужна полная подготовка окружения этапа 4 после clone, без анализа требований.
+Сначала выполни git rev-parse --show-toplevel и покажи абсолютный Git root.
+Подставь этот абсолютный путь и прочитай целиком только
+<ABSOLUTE-GIT-ROOT>/.agents/skills/setup-analysis-workspace/SKILL.md.
+Покажи выбранный абсолютный путь к SKILL.md и выполни этот project skill
+целиком в режиме полной подготовки. Одноимённый глобальный skill не используй.
 ```
 
-Project-файл выполняет `npm ci` и один `npm run setup`, проверяя чистоту Git
-до и после. Если OpenCode показывает другой полный путь к skill, не запускайте
-его и потребуйте прочитать файл внутри текущего Git root напрямую. Если команда
-завершилась ошибкой или status изменился, подготовка не окончена; не чините
-package/lock догадками.
+Project skill проверяет базовую ветку и `IMPORT_BASE_SHA`, выполняет requirements
+`npm ci` и `npm run setup`, безопасно создаёт либо проверяет соседний
+`sdd-guide-credit-calculator-stage-4-code` на точном service pin, запускает его
+`check:code`, связывает локальный Store, выполняет `store doctor`, два реальных
+bootstrap и `check:store`. Новый code checkout остаётся detached; ветка реализации
+не создаётся.
 
-Если успешные `npm ci` и `npm run setup` уже были выполнены, используйте
-короткое recovery-сообщение и не запускайте setup повторно:
+Если Store ID отсутствует, явный полный запрос разрешает регистрацию текущего
+requirements root. Совпадающий root переиспользуется. При другом root skill
+показывает старый и новый пути и останавливается за подтверждением; до него
+unregister запрещён, а перед разрешённым переключением состояние проверяется
+повторно. Существующий code-путь skill не заменяет и не переключает.
 
-```text
-STOP. Не повторяй npm ci или npm run setup. Покажи git rev-parse
---show-toplevel и git status --short --branch, подтверди уже полученные exit
-status 0 и остановись. Не запускай глобальный skill, Store или bootstrap.
-```
+Успех означает `root.source = declared`, Store ID
+`sdd-credit-calculator-product-meta`, realpath текущего requirements root,
+совпадение независимых planning/service pins, два `bootstrap: PASS` и чистые
+requirements, snapshots и code checkout. `.workspace/planning/stage-3` и
+`.workspace/services/credit-calculator` доступны только для чтения. Skill не
+создаёт Change, не запускает Apply и не выполняет commit/push.
 
-## 3. Проверьте Store root
+Bootstrap сверяет точный Git-tree inventory, blob OID, SHA-256 исходных файлов и
+каноническое Git-содержимое импорта; он не исправляет расхождения автоматически.
 
-После успешного setup выполните из того же корня:
-
-```bash
-npm exec openspec -- store list --json
-```
-
-Нужен Store ID `sdd-credit-calculator-product-meta`, указывающий точно на текущую папку.
-
-- Если ID отсутствует, остановитесь и получите явное разрешение организатора на регистрацию именно этого checkout. Отсутствие записи не разрешает регистрировать Store автоматически. Только после такого разрешения выполните:
-
-```bash
-npm exec openspec -- store register . \
-  --id sdd-credit-calculator-product-meta --yes --json
-npm exec openspec -- store doctor sdd-credit-calculator-product-meta --json
-```
-
-- Если ID указывает на другую папку, покажите организатору оба пути и остановитесь. Не выполняйте unregister/remove и не переназначайте чужой root.
-- Если root совпадает, проверьте его:
-
-```bash
-npm exec openspec -- store doctor sdd-credit-calculator-product-meta --json
-```
-
-## 4. Дважды проверьте bootstrap
-
-Только при правильном Store root и чистом status выполните две отдельные команды без `grep`, `tail` или pipeline:
-
-```bash
-npm run bootstrap
-npm run bootstrap
-git status --short
-git -C .workspace/planning/stage-3 status --short
-git -C .workspace/services/credit-calculator status --short
-```
-
-Оба запуска должны завершиться `bootstrap: PASS`: первый получает либо переиспользует два read-only снимка, второй подтверждает идемпотентность. Пустой вывод трёх status означает чистое состояние. Результаты fixture-тестов внутри `npm run check` не заменяют эти два реальных запуска.
-
-`.workspace/planning/stage-3` и `.workspace/services/credit-calculator` доступны только для чтения: не исправляйте в них planning или код.
-
-Bootstrap сверяет source repository/SHA, точный Git-tree inventory, blob OID, SHA-256 исходного blob и каноническое Git-содержимое импорта. LF/CRLF рабочего checkout может нормализоваться Git. Команда не исправляет потерянные или лишние файлы, checked tasks, грязный snapshot и конфликт Store root.
-
-## 5. Прочитайте фактический унаследованный контракт
+## 3. Прочитайте фактический унаследованный контракт
 
 Откройте:
 
@@ -151,11 +136,11 @@ Bootstrap сверяет source repository/SHA, точный Git-tree inventory,
 - весь `openspec/specs/`;
 - каждый Change из `imports.activeChanges` manifest.
 
-После обычной R3 источник содержит минимум один активный Change. После необязательной R3-ИИ их может быть два или больше. Не требуйте фиксированное имя второго Change, число файлов, строк матрицы или сценариев: источником правды служат Git tree, manifest и сами артефакты. В каждом импортированном `tasks.md` все задачи должны оставаться незавершёнными.
+После обычной R3 источник содержит минимум один активный Change. После необязательной R3-ИИ их может быть два или больше. Не требуйте фиксированное имя второго Change, число файлов, строк матрицы или сценариев: источником правды служат Git tree, manifest и сами артефакты. В каждом импортированном `tasks.md` все задачи должны оставаться pending.
 
 Служебные Changes самого шаблона не относятся к истории ученика и не входят в imported inventory. Новый `limit-credit-amount` должен учитывать каждый импортированный активный Change, который реально присутствует.
 
-## 6. Создайте рабочую ветку
+## 4. Создайте рабочую ветку
 
 Проверьте base и чистоту, затем создайте ветку:
 
@@ -166,7 +151,7 @@ git switch -c course/<LOGIN>/stage-4-amount-limits
 
 Если рабочая ветка уже существует, продолжайте её только после проверки base. Не создавайте ветку от общей `main`.
 
-## 7. Обсудите требование через original MTP grill
+## 5. Обсудите требование через original MTP grill
 
 В OpenCode отправьте:
 
@@ -189,11 +174,11 @@ git switch -c course/<LOGIN>/stage-4-amount-limits
 
 Если в источнике нет payment summary, вопросы и будущая delta не должны выдумывать общую сумму или переплату. Если capability присутствует, ошибка суммы должна очищать все её результаты.
 
-## 8. Используйте Explore только при оставшейся развилке
+## 6. Используйте Explore только при оставшейся развилке
 
 После grill вызовите OpenSpec Explore только если осталось существенное решение о поведении, замене сценария, структуре delta или проверке. Если все решения подтверждены, сразу переходите к Propose. Explore не нужен для пересказа принятого ответа.
 
-## 9. Создайте Change через Propose
+## 7. Создайте Change через Propose
 
 ```text
 Используй OpenSpec Propose для limit-credit-amount в Store
@@ -210,9 +195,9 @@ MODIFIED delta через 10 001 ₽; исходные imported файлы не 
 archive или sync и не меняй код сервиса.
 ```
 
-Для полного учебного примера R3+3-ИИ итог считают по смыслу: 31 незатронутый унаследованный сценарий + 2 явно заменённых ожидания + 5 новых сценариев = 38 действующих сценариев. Это проверка конкретного примера, а не универсальная константа. Не складывайте повторённые MODIFIED-блоки как новые требования; фактические числа берите из файлов.
+Для полного учебного примера R3+3-ИИ итог считают по смыслу: 31 незатронутый унаследованный сценарий + 2 явно заменённых ожидания + 5 действительно новых сценариев = 38 действующих сценариев. Это проверка конкретного примера, а не универсальная константа. Не складывайте повторённые MODIFIED-блоки как новые требования; фактические числа берите из файлов.
 
-## 10. Проверьте содержание и сохраните результат
+## 8. Проверьте содержание и сохраните результат
 
 Сначала прочитайте все созданные файлы и итоговый договор зависимых Changes. Затем выполните:
 
@@ -230,18 +215,27 @@ git status --short
 Добавьте только новый Change и согласованную матрицу, прочитайте staged diff:
 
 ```bash
+set -eu
 git add openspec/changes/limit-credit-amount docs/course/requirements-traceability.md
 git diff --cached
 git status --short
 git commit -m "docs: propose inclusive credit amount limits"
-fork_url="<CORPORATE_FORK_URL>"
-git remote get-url fork || git remote add fork "$fork_url"
-push_remote=fork
-git push -u "$push_remote" course/<LOGIN>/stage-4-amount-limits
-git ls-remote --heads "$push_remote" course/<LOGIN>/stage-4-amount-limits
+branch="course/<LOGIN>/stage-4-amount-limits"
+git push -u origin "$branch"
+local_head=$(git rev-parse HEAD)
+remote_ref=$(git ls-remote --heads origin "refs/heads/$branch")
+test -n "$remote_ref"
+remote_head=${remote_ref%%[[:space:]]*}
+test "$remote_head" = "$local_head"
 ```
 
-Откройте planning PR в личную `course/<LOGIN>/stage-4-import-base`, не в общую `main`. Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость. После содержательных правок оба review повторяются для актуального diff. После двух подтверждений сохраните ветку и смёржьте учебный PR в личную base-ветку своего корпоративного fork; в общую `main` не сливайте.
+Откройте planning PR внутри своего fork: source
+`course/<LOGIN>/stage-4-amount-limits` → base
+`course/<LOGIN>/stage-4-import-base`, не в общую `main`. Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость. После содержательных
+правок оба review повторяются для актуального diff. После двух подтверждений
+смёржьте учебный PR в личную base-ветку своего корпоративного fork; в общую
+`main` не сливайте. Если GitHub предлагает force push или PR в upstream,
+остановитесь и исправьте source/base.
 
 ## STOP: реализация отдельно
 

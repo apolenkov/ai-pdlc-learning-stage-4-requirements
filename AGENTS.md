@@ -4,9 +4,9 @@
 
 - Владелец эталона меняет общие инструкции и автоматизацию только в maintenance-ветке с отдельным review.
 - Организатор готовит и публикует personal import-base из полного Git SHA ученика. Он не занимает локальную рабочую папку ученика и не выдаёт неподготовленную `main` за личную историю.
-- Ученик сам клонирует опубликованную `course/<LOGIN>/stage-4-import-base`, создаёт корпоративный fork и работает в `course/<LOGIN>/stage-4-amount-limits`. Planning PR направляется в personal import-base внутри fork, не в общую `main`; после двух человеческих review PR можно смёржить в личную base-ветку fork, но не в общую `main`.
+- Ученик создаёт корпоративный fork с копированием всех веток, клонирует из него опубликованную `course/<LOGIN>/stage-4-import-base` и работает в `course/<LOGIN>/stage-4-amount-limits`; `origin` всегда указывает на fork. Planning PR направляется в personal import-base внутри fork, не в upstream и не в общую `main`; после двух человеческих review PR можно смёржить в личную base-ветку fork.
 
-Требования, планы и задачи принадлежат этому метарепозиторию. В новом комплекте R4 код и runtime-тесты принадлежат отдельному `sdd-credit-calculator-stage-4-example`. Аналитическая ступень не разрешает Apply. После отдельного разрешения на реализацию агенту явно задают оба рабочих root и границы правок: код в сервисе, задачи после проверки в Store. Указатель Store сам не даёт доступ к соседней папке. Существующие личные пары и их service pins не заменяются автоматически.
+Требования, планы и задачи принадлежат этому метарепозиторию. В новом комплекте R4 код и runtime-тесты принадлежат отдельному `sdd-guide-credit-calculator-stage-4-code`. Аналитическая ступень не разрешает Apply. После отдельного разрешения на реализацию агенту явно задают оба рабочих root и границы правок: код в сервисе, задачи после проверки в Store. Указатель Store сам не даёт доступ к соседней папке. Существующие личные пары и их service pins не заменяются автоматически.
 
 Репозиторий хранит контекст продукта и спецификации, но не код сервиса. Не добавляйте токены, персональные данные, корпоративные документы, dependencies или `.workspace/`.
 
@@ -25,13 +25,13 @@
 
 ## Порядок входа ученика
 
-1. Клонировать опубликованную personal import-base в папку `sdd-credit-calculator-product-meta-example` и проверить branch/SHA/status.
-2. Из этого корня запустить `opencode`, получить Git root и прочитать целиком именно `<git-root>/.agents/skills/setup-analysis-workspace/SKILL.md`. До команд агент показывает выбранный полный путь и подтверждает, что base directory равна `<git-root>/.agents/skills/setup-analysis-workspace`. Одноимённый глобальный или любой другой skill не выполнять: project-файл запускает `npm ci` ровно один раз, затем один `npm run setup`, проверяет чистоту до и после и останавливается. Если обе команды уже успешно завершились, не повторять их — показать только root/status.
-3. Проверить Store ID/root. Отсутствующая регистрация требует явного разрешения организатора; другой root — STOP без unregister/remove или автоматического переназначения.
-4. При правильном root выполнить два отдельных `npm run bootstrap`, затем проверить чистоту meta, planning и service snapshots.
-5. Только после этого создать рабочую ветку, пройти original `grill-with-docs`, при оставшейся существенной развилке OpenSpec Explore, затем OpenSpec Propose и человеческое review.
+1. Получить у организатора `<META_REPOSITORY_URL>`, `IMPORT_BASE_BRANCH`, `IMPORT_BASE_SHA`, `PLANNING_SHA`, `SERVICE_SHA` и `REVIEW_REFERENCE`; создать fork с копированием всех веток и клонировать personal import-base из fork в `sdd-guide-credit-calculator-stage-4-requirements`.
+2. Если ветка не скопировалась, применять fallback только после доказанного отсутствия ветки в fork и точного совпадения upstream SHA с `IMPORT_BASE_SHA`; не писать в upstream, `main` и не использовать force.
+3. Из requirements root запустить `opencode`, получить Git root и прочитать целиком именно `<ABSOLUTE-GIT-ROOT>/.agents/skills/setup-analysis-workspace/SKILL.md`. Одноимённый глобальный или любой другой skill не выполнять.
+4. Полный project skill проверяет requirements base/SHA, создаёт либо проверяет соседний `sdd-guide-credit-calculator-stage-4-code` на точном service pin, выполняет setup/check:code, безопасно связывает Store, дважды запускает bootstrap и проверяет `check:store`. Существующие папки и конфликтующий Store root не заменяются без отдельного подтверждения точных путей.
+5. Только после чистого отчёта создать аналитическую ветку, пройти original `grill-with-docs`, при оставшейся существенной развилке OpenSpec Explore, затем OpenSpec Propose и человеческое review.
 
-Setup skill не регистрирует Store, не запускает bootstrap и не продолжает workflow автоматически. Fixture-тесты из `npm run check` не считаются двумя реальными bootstrap.
+Setup skill не создаёт Change или рабочую code-ветку, не продолжает workflow автоматически и не разрешает Apply. Fixture-тесты из `npm run check` не считаются двумя реальными bootstrap.
 
 ## Подготовка OpenSpec Change
 

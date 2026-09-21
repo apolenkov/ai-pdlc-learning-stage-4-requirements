@@ -4,11 +4,11 @@
 
 ## Граница ролей
 
-- Организатор получает полный SHA планирования ученика, переносит из его Git tree весь `openspec/specs/` и все активные Changes, формирует manifest, проверяет отдельный service pin и публикует personal import-base.
-- Ученик сам клонирует опубликованную ветку в папку `sdd-credit-calculator-product-meta-example`, запускает OpenCode и вызывает `setup-analysis-workspace`.
-- Setup skill выполняет только `npm ci` и `npm run setup` с чистым status до и после.
-- Регистрация Store требует отдельной проверки root. Отсутствующая запись создаётся только после явного разрешения организатора; конфликтующий root не заменяется автоматически.
-- После правильной регистрации ученик выполняет два реальных bootstrap и продолжает аналитический маршрут из README.
+- Организатор получает полный planning SHA ученика, переносит из его Git tree весь `openspec/specs/` и все активные Changes, формирует manifest, проверяет отдельный service pin и публикует personal import-base. Ученику передаётся полный договор: URL метарепозитория, branch, import-base SHA, planning SHA, service SHA и review reference.
+- Ученик создаёт fork с копированием всех веток, клонирует свой fork в `sdd-guide-credit-calculator-stage-4-requirements`; `origin` остаётся fork. Upstream используется только для fail-closed чтения отсутствующей import-base, без записи, force и подстановки `main`.
+- Полный `setup-analysis-workspace` проверяет requirements, создаёт либо проверяет соседний `sdd-guide-credit-calculator-stage-4-code` на service pin, выполняет setup/check:code, Store doctor, два реальных bootstrap и check:store.
+- Отсутствующая Store-запись может быть создана явным запросом полной подготовки. Конфликтующий root не заменяется без отдельного подтверждения точных старого и нового путей; существующая code-папка не переключается и не перезаписывается.
+- После чистого отчёта skill ученик продолжает аналитический маршрут из README. Code checkout остаётся detached до принятия требований и отдельного разрешения на реализацию.
 
 R3-ИИ необязательна: manifest может содержать один или несколько импортированных Changes. Main specs источника могут быть пусты. Не добавляйте фиктивный baseline и не закрепляйте SHA планирования в `services.lock.yaml`.
 

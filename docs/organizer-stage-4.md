@@ -1,6 +1,6 @@
 # Подготовка и публикация personal import-base R4
 
-Эту процедуру выполняет организатор в отдельном чистом checkout метарепозитория. Ученик не повторяет импорт: он клонирует уже опубликованную personal import-base. Процедура переносит весь фактический planning inventory выбранного Git SHA, но не код, dependencies или runtime-тесты сервиса.
+Эту процедуру выполняет организатор в отдельном чистом checkout метарепозитория. Ученик не повторяет импорт: он создаёт fork с копированием всех веток и клонирует уже опубликованную personal import-base из своего fork. Процедура переносит весь фактический planning inventory выбранного Git SHA, но не код, dependencies или runtime-тесты сервиса.
 
 ## Входные данные
 
@@ -11,7 +11,17 @@
 - `<PLANNING_SHA>` — его полный 40-символьный Git SHA;
 - `<SERVICE_SHA>` — независимо выбранный полный SHA контекста сервиса;
 - `<META_REPOSITORY_URL>` — HTTPS URL метарепозитория;
-- `<REVIEW_REFERENCE>` — ссылки или точные ссылки на актуальные человеческие review.
+- `<REVIEW_REFERENCE>` — точные ссылки на актуальные человеческие review либо `pending`.
+
+После подготовки появятся ещё два обязательных значения:
+
+- `<IMPORT_BASE_BRANCH>` — точное имя `course/<LOGIN>/stage-4-import-base`;
+- `<IMPORT_BASE_SHA>` — полный SHA подготовленного commit, подтверждённый на remote.
+
+Именно эти шесть полей образуют единый договор передачи ученику:
+`<META_REPOSITORY_URL>`, `<IMPORT_BASE_BRANCH>`, `<IMPORT_BASE_SHA>`,
+`<PLANNING_SHA>`, `<SERVICE_SHA>`, `<REVIEW_REFERENCE>`. Не передавайте ветку без
+SHA или SHA без provenance/review-ссылки.
 
 SHA планирования описывает происхождение требований. Service SHA описывает версию кода для чтения. Это независимые роли: repository и SHA могут совпасть, но service pin выбирают и проверяют отдельно, а не копируют из planning provenance.
 
@@ -58,7 +68,8 @@ git -C <PLANNING_SOURCE_CHECKOUT> ls-tree -r --name-only <PLANNING_SHA> -- \
 ```bash
 git switch main
 git pull --ff-only
-git switch -c course/<LOGIN>/stage-4-import-base
+IMPORT_BASE_BRANCH="course/<LOGIN>/stage-4-import-base"
+git switch -c "$IMPORT_BASE_BRANCH"
 git status --short --branch
 ```
 
@@ -96,7 +107,7 @@ cp docs/templates/requirements-traceability.md docs/course/requirements-traceabi
 
 Заполните оба файла в `docs/course/` без оставшихся `<...>`. В transfer перечислите все активные Changes из manifest, `<PLANNING_SHA>`, отдельный `<SERVICE_SHA>` и фактические review. В traceability добавьте каждое унаследованное требование и сценарий; не подгоняйте строки под заранее заданное число.
 
-Для новой personal import-base используйте сервис `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code.git` и отдельно проверенный полный `<SERVICE_SHA>` из актуального `services.lock.yaml` эталона. Происхождение планирования по-прежнему указывает на исходный результат R3 или R3-ИИ: не заменяйте его адресом нового сервиса и не записывайте SHA планирования в service pin. Уже опубликованные личные базы и их pins не меняйте автоматически. В `openspec/config.yaml` не перечисляйте случайный фиксированный набор унаследованных Changes: источником служит manifest.
+Для новой personal import-base используйте сервис `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code.git` и отдельно проверенный полный `<SERVICE_SHA>` из актуального `services.lock.yaml` эталона. Переименование репозитория само по себе не разрешает менять service SHA. Происхождение планирования по-прежнему указывает на исходный результат R3 или R3-ИИ: не заменяйте его адресом нового сервиса и не записывайте planning SHA в service pin. Уже опубликованные личные базы и их pins не меняйте автоматически. В `openspec/config.yaml` не перечисляйте случайный фиксированный набор унаследованных Changes: источником служит manifest.
 
 ## 3. Проверьте точность переноса
 
@@ -153,14 +164,38 @@ git -C .workspace/services/credit-calculator status --short
 Только после всех проверок:
 
 ```bash
-git rev-parse HEAD
-git push -u origin course/<LOGIN>/stage-4-import-base
-git ls-remote --heads origin course/<LOGIN>/stage-4-import-base
+set -eu
+IMPORT_BASE_BRANCH="course/<LOGIN>/stage-4-import-base"
+IMPORT_BASE_SHA=$(git rev-parse HEAD)
+git push -u origin "$IMPORT_BASE_BRANCH"
+remote_import_base_ref=$(git ls-remote --heads origin "refs/heads/$IMPORT_BASE_BRANCH")
+test -n "$remote_import_base_ref"
+remote_import_base_sha=${remote_import_base_ref%%[[:space:]]*}
+test "$remote_import_base_sha" = "$IMPORT_BASE_SHA"
 ```
 
-Передайте ученику `<META_REPOSITORY_URL>`, точное имя ветки, SHA планирования и ожидаемый commit personal base. Ученик сам клонирует её в каноническую папку `sdd-credit-calculator-product-meta-example`, запускает `opencode` и вызывает project skill `setup-analysis-workspace`.
-Для будущей реализации отдельно передайте URL сервиса из `services.lock.yaml`, его полный SHA и [инструкцию разработчика](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md). Это не разрешает Apply и не требует заменять существующую рабочую папку ученика.
+Передайте договор без переименования полей:
 
-В пользовательской среде регистрация проверяется заново. Если Store ID отсутствует, ученик останавливается и получает явное разрешение организатора зарегистрировать именно этот checkout. Если ID указывает на другой root, требуется решение владельца среды: не выполняйте unregister/remove и не переназначайте регистрацию автоматически.
+```text
+META_REPOSITORY_URL=<META_REPOSITORY_URL>
+IMPORT_BASE_BRANCH=<IMPORT_BASE_BRANCH>
+IMPORT_BASE_SHA=<IMPORT_BASE_SHA>
+PLANNING_SHA=<PLANNING_SHA>
+SERVICE_SHA=<SERVICE_SHA>
+REVIEW_REFERENCE=<REVIEW_REFERENCE>
+```
+
+Ученик открывает `<META_REPOSITORY_URL>` в GitHub Enterprise, создаёт fork и
+снимает флаг **Copy the main branch only**, чтобы скопировать все ветки. Затем он
+клонирует `<IMPORT_BASE_BRANCH>` из своего fork в каноническую папку
+`sdd-guide-credit-calculator-stage-4-requirements`, сверяет `<IMPORT_BASE_SHA>`,
+запускает `opencode` и вызывает project skill `setup-analysis-workspace`. Если
+ветка не скопировалась, ученик использует только fail-closed fallback из README;
+не предлагайте создавать ветку от `main`, перезаписывать fork или писать в
+upstream.
+
+Для будущей реализации передайте [инструкцию разработчика](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md). URL сервиса и его полный SHA уже входят в `services.lock.yaml` и договор как `<SERVICE_SHA>`. Это не разрешает Apply и не требует заменять существующую рабочую папку ученика.
+
+В пользовательской среде project skill проверяет регистрацию заново. Явный запрос полной подготовки разрешает создать отсутствующую запись для текущего checkout. Если ID указывает на другой root, skill показывает оба точных пути и останавливается; переключение возможно только после отдельного подтверждения владельца среды и повторной проверки состояния.
 
 Публикация import-base не является человеческим review, реализацией `limit-credit-amount` или разрешением Apply.
