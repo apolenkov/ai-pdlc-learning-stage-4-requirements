@@ -22,16 +22,23 @@ flowchart LR
 
 ## Подготовленный путь аналитика
 
-Организатор готовит, дважды проверяет и публикует personal import-base по [отдельной инструкции](../organizer-stage-4.md). Аналитик клонирует её в каноническую папку и начинает с OpenCode:
+Организатор готовит, дважды проверяет и публикует personal import-base по [отдельной инструкции](../organizer-stage-4.md). Аналитик создаёт fork с копированием всех веток, клонирует опубликованную ветку из своего fork в каноническую папку и начинает с OpenCode:
 
 ```bash
 git clone --branch course/<LOGIN>/stage-4-import-base --single-branch \
-  <META_REPOSITORY_URL> sdd-credit-calculator-product-meta-example
-cd sdd-credit-calculator-product-meta-example
+  <FORK_REPOSITORY_URL> sdd-guide-credit-calculator-stage-4-requirements
+cd sdd-guide-credit-calculator-stage-4-requirements
 opencode
 ```
 
-В OpenCode ученик явно вызывает `setup-analysis-workspace`: skill выполняет `npm ci` и `npm run setup`, проверяет чистоту и останавливается. Затем ученик проверяет Store root; отсутствующая регистрация требует разрешения организатора, конфликтующая — остановки без автоматического переназначения. Только после правильного root выполняются два `npm run bootstrap`, original MTP `grill-with-docs`, Explore при существенной развилке, Propose и два человеческих review. Apply запускается отдельно только после принятия зависимого договора и нового разрешения на реализацию.
+В OpenCode ученик явно вызывает `setup-analysis-workspace`. Skill проверяет
+requirements base/SHA, выполняет setup, создаёт либо проверяет соседний code
+checkout на точном service pin, запускает `check:code`, связывает Store, два
+реальных bootstrap и `check:store`. При конфликтующем Store root или существующем
+code checkout с другим origin/HEAD/status он останавливается без автоматической
+замены. Затем выполняются original MTP `grill-with-docs`, Explore при существенной
+развилке, Propose и два человеческих review. Apply запускается отдельно только
+после принятия зависимого договора и нового разрешения на реализацию.
 
 ## Явное разрешение Store
 
@@ -43,7 +50,7 @@ Store identity хранится в `.openspec-store/store.yaml`. Регистр�
 --store sdd-credit-calculator-product-meta
 ```
 
-Перед работой проверяются `store list --json` и `store doctor ... --json`. Если ID указывает на другой root, операция останавливается; автоматическая перерегистрация запрещена. Временные acceptance-checkout используют отдельный `XDG_DATA_HOME`.
+Перед работой проверяются `store list --json` и `store doctor ... --json`. Если ID указывает на другой root, skill показывает точные старый и новый пути и останавливается; переключение возможно только после отдельного подтверждения и повторной проверки состояния. Временные acceptance-checkout используют отдельный `XDG_DATA_HOME`.
 
 ## Готовый репозиторий кода R4
 
@@ -51,11 +58,14 @@ Store identity хранится в `.openspec-store/store.yaml`. Регистр�
 
 ```text
 work/
-  sdd-credit-calculator-product-meta-example/  # specs, Changes, tasks
-  sdd-credit-calculator-stage-4-example/        # src и runtime-тесты
+  sdd-guide-credit-calculator-stage-4-requirements/  # specs, Changes, tasks
+  sdd-guide-credit-calculator-stage-4-code/          # src и runtime-тесты
 ```
 
-После принятия полного фактического набора Changes разработчик клонирует новый репозиторий кода и создаёт личную ветку от SHA в согласованном `services.lock.yaml`. В новом комплекте:
+Полный setup заранее создаёт новый code checkout в detached HEAD на SHA из
+`services.lock.yaml`, но не разрешает разработку. После принятия полного
+фактического набора Changes и отдельного разрешения разработчик проверяет этот
+checkout и только тогда создаёт личную ветку. В новом комплекте:
 
 1. местных `openspec/specs` и `openspec/changes` в сервисе уже нет; переносить или удалять старые требования не нужно;
 2. `openspec/config.yaml` уже содержит `store: sdd-credit-calculator-product-meta`;

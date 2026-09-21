@@ -29,10 +29,12 @@ test("repository keeps its canonical setup skill outside the MTP-managed set", a
   assert.match(skill, /npm run setup/u);
   assert.match(skill, /npm ci/u);
   assert.match(skill, /status до и после пуст/u);
-  assert.doesNotMatch(skill, /openspec -- store (?:register|unregister)/u);
-  assert.doesNotMatch(skill, /git clone|npm run doctor/u);
-  assert.match(skill, /не запускайте bootstrap/u);
-  assert.match(skill, /не создавайте ветку или Change/u);
+  assert.match(skill, /git clone --no-checkout <repository> <code-root>/u);
+  assert.match(skill, /checkout --detach <service-sha>/u);
+  assert.match(skill, /npm exec openspec -- store doctor <store-id> --json/u);
+  assert.match(skill, /npm run bootstrap\nnpm run bootstrap/u);
+  assert.match(skill, /npm run check:code/u);
+  assert.match(skill, /npm run check:store/u);
   assert.match(skill, /Сообщите фактический результат и остановитесь/u);
 });
 

@@ -1,6 +1,6 @@
 interface:
-  display_name: "Настроить среду анализа"
-  short_description: "Развернуть и проверить учебную рабочую среду"
-  default_prompt: "Используй $setup-analysis-workspace, чтобы развернуть и проверить эту учебную среду анализа."
+  display_name: "Подготовить окружение этапа 4"
+  short_description: "Подготовить требования, рабочий код и локальный Store"
+  default_prompt: "Используй $setup-analysis-workspace из текущего Git root, чтобы подготовить пару requirements/code этапа 4 и проверить Store."
 policy:
   allow_implicit_invocation: false

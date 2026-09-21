@@ -58,10 +58,15 @@ test("prepared personal context separates planning provenance from the service p
 });
 
 test("OpenSpec Store identity is committed and points to this meta repository", async () => {
-  const store = await readFile(resolve(root, ".openspec-store/store.yaml"), "utf8");
+  const [store, lock] = await Promise.all([
+    readFile(resolve(root, ".openspec-store/store.yaml"), "utf8"),
+    readFile(resolve(root, "services.lock.yaml"), "utf8"),
+  ]);
   assert.match(store, /^version:\s*1$/m);
   assert.match(store, /^id:\s*sdd-credit-calculator-product-meta$/m);
-  assert.match(store, /remote:\s*https:\/\/github\.example\.invalid\/apolenkov\/sdd-credit-calculator-product-meta-example\.git/);
+  assert.match(store, /remote:\s*https:\/\/github\.example\.invalid\/apolenkov\/sdd-guide-credit-calculator-stage-4-requirements\.git/);
+  assert.match(lock, /repository:\s*https:\/\/github\.example\.invalid\/apolenkov\/sdd-guide-credit-calculator-stage-4-code\.git/u);
+  assert.match(lock, /commit:\s*25cef95fabc1355d3dfeee60827e903c40e1e8a2/u);
 });
 
 test("Store setup uses the official CLI without a custom wrapper", async () => {
@@ -75,40 +80,72 @@ test("Store setup uses the official CLI without a custom wrapper", async () => {
   assert.doesNotMatch(packageJson, /store:ensure/u);
   assert.match(skill, /npm ci/u);
   assert.match(skill, /npm run setup/u);
-  assert.doesNotMatch(skill, /openspec -- store (?:register|unregister)/u);
+  assert.match(skill, /git clone --no-checkout <repository> <code-root>/u);
+  assert.match(skill, /checkout --detach <service-sha>/u);
+  assert.match(skill, /npm run check:code/u);
+  assert.match(skill, /npm exec openspec -- store list --json/u);
+  assert.match(skill, /npm exec openspec -- store register \. --id <store-id> --yes --json/u);
+  assert.match(skill, /root другой[\s\S]*?остановитесь[\s\S]*?без изменения реестра/iu);
+  assert.match(skill, /npm run bootstrap\nnpm run bootstrap/u);
+  assert.match(skill, /npm run check:store/u);
   assert.match(readme, /git rev-parse --show-toplevel.*\.agents\/skills\/setup-analysis-workspace\/SKILL\.md/su);
-  assert.match(readme, /До npm ci\/setup покажи\s+полный путь выбранного SKILL\.md.*базовая папка равна\s+<git-root>\/\.agents\/skills\/setup-analysis-workspace/su);
-  assert.match(readme, /~\/\.agents\/skills\/setup-analysis-workspace\/SKILL\.md.*глобальный каталог\s+skills.*НЕ выполняй его.*project-файлу/su);
   assert.doesNotMatch(readme, /\/Users\/wrk/u);
-  assert.match(readme, /npm ci ровно один раз.*npm run setup ровно\s+один раз/su);
-  assert.match(readme, /уже успешно завершились.*не повторяй\s+их.*покажи только Git root и status/su);
-  assert.match(agents, /<git-root>\/\.agents\/skills\/setup-analysis-workspace\/SKILL\.md/u);
-  assert.match(agents, /Одноимённый глобальный или любой другой skill не выполнять/u);
-  assert.match(agents, /npm ci` ровно один раз.*один `npm run setup`/su);
+  assert.match(agents, /<ABSOLUTE-GIT-ROOT>\/\.agents\/skills\/setup-analysis-workspace\/SKILL\.md/u);
 });
 
-test("analyst clones the organizer-published personal base before setup", async () => {
+test("learner uses a fork-first fail-closed Git flow", async () => {
   const readme = await readFile(resolve(root, "README.md"), "utf8");
   const contributing = await readFile(resolve(root, "CONTRIBUTING.md"), "utf8");
   const organizer = await readFile(resolve(root, "docs/organizer-stage-4.md"), "utf8");
   assert.match(readme, /Организатор готовит и публикует персональную ветку/u);
-  assert.match(readme, /git clone --branch course\/<LOGIN>\/stage-4-import-base --single-branch/u);
+  assert.match(readme, /снимите флаг.*Copy the main branch only/su);
+  assert.match(readme, /git clone --branch course\/<LOGIN>\/stage-4-import-base --single-branch \\\s+<FORK_REPOSITORY_URL> \\\s+sdd-guide-credit-calculator-stage-4-requirements/u);
+  assert.match(readme, /origin.*ваш fork/su);
+  assert.match(readme, /git clone --no-checkout <FORK_REPOSITORY_URL>/u);
+  assert.match(readme, /git remote add upstream <META_REPOSITORY_URL>/u);
+  assert.match(readme, /test -z "\$existing_base"/u);
+  assert.match(readme, /git fetch --no-tags upstream refs\/heads\/course\/<LOGIN>\/stage-4-import-base/u);
+  assert.match(readme, /test "\$\(git rev-parse FETCH_HEAD\)" = "<IMPORT_BASE_SHA>"/u);
+  assert.match(readme, /git push -u origin course\/<LOGIN>\/stage-4-import-base/u);
+  assert.match(readme, /remote_ref=.*git ls-remote --heads origin[\s\S]*?test -n "\$remote_ref"[\s\S]*?remote_head=\$\{remote_ref%%\[\[:space:\]\]\*\}/u);
+  assert.match(readme, /test "\$remote_head" = "<IMPORT_BASE_SHA>"/u);
+  assert.doesNotMatch(readme, /remote add fork|push_remote=fork|git push[^\n]*upstream|git push[^\n]*\bmain\b|--force|ls-remote[^\n]*\|/u);
   assert.match(readme, /opencode[\s\S]*?setup-analysis-workspace[\s\S]*?npm ci[\s\S]*?npm run setup/u);
-  assert.match(readme, /npm run bootstrap\n+npm run bootstrap/u);
-  const permissionGate = readme.indexOf("Только после такого разрешения выполните:");
-  const learnerRegistration = readme.indexOf("npm exec openspec -- store register .", permissionGate);
-  assert.ok(permissionGate >= 0 && learnerRegistration > permissionGate);
-  assert.match(readme, /store register \.[\s\S]*?--id sdd-credit-calculator-product-meta --yes --json[\s\S]*?store doctor sdd-credit-calculator-product-meta --json/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-import-base/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-amount-limits/u);
   assert.match(readme, /Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость/u);
   assert.match(readme, /смёржьте учебный PR в личную base-ветку/u);
+  assert.match(readme, /git push -u origin "\$branch"[\s\S]*?test "\$remote_head" = "\$local_head"/u);
   assert.match(readme, /задачи реализации остаются `- \[ \]`/u);
-  assert.match(contributing, /Ученик сам клонирует опубликованную ветку/u);
+  assert.match(contributing, /fork[\s\S]*?копированием всех веток[\s\S]*?клонирует свой fork/iu);
   assert.match(organizer, /XDG_DATA_HOME="\$course_xdg" npm run bootstrap\nXDG_DATA_HOME="\$course_xdg" npm run bootstrap/u);
-  assert.match(organizer, /не выполняйте unregister\/remove/iu);
   assert.match(organizer, /Публикация import-base не является человеческим review/u);
   assert.match(organizer, /if \[ -e "openspec\/changes\/\$inherited_change" \]; then[\s\S]*?STOP: target Change already exists[\s\S]*?exit 1[\s\S]*?cp -R/u);
+});
+
+test("organizer hands off one complete immutable Stage 4 contract", async () => {
+  const organizer = await readFile(resolve(root, "docs/organizer-stage-4.md"), "utf8");
+  for (const field of [
+    "META_REPOSITORY_URL",
+    "IMPORT_BASE_BRANCH",
+    "IMPORT_BASE_SHA",
+    "PLANNING_SHA",
+    "SERVICE_SHA",
+    "REVIEW_REFERENCE",
+  ]) {
+    assert.match(organizer, new RegExp(`<${field}>`, "u"));
+  }
+  assert.match(organizer, /IMPORT_BASE_SHA=.*git rev-parse HEAD/u);
+  assert.match(organizer, /remote_import_base_ref=.*git ls-remote --heads origin[\s\S]*?test -n "\$remote_import_base_ref"[\s\S]*?remote_import_base_sha=\$\{remote_import_base_ref%%\[\[:space:\]\]\*\}/u);
+  assert.match(organizer, /test "\$remote_import_base_sha" = "\$IMPORT_BASE_SHA"/u);
+  assert.match(organizer, /fork[\s\S]*?Copy the main branch only[\s\S]*?все ветки/iu);
+});
+
+test("README numbered learner steps are sequential", async () => {
+  const readme = await readFile(resolve(root, "README.md"), "utf8");
+  const numbers = [...readme.matchAll(/^## (\d+)\./gmu)].map((match) => Number(match[1]));
+  assert.ok(numbers.length >= 5);
+  assert.deepEqual(numbers, numbers.map((_, index) => index + 1));
 });
 
 test("organizer copy guard stops before overwriting an inherited Change", async () => {
@@ -161,7 +198,7 @@ test("Store and Workset architecture keeps pinned workspace read-only", async ()
   assert.match(architecture, /\.workspace\/services\/credit-calculator.*read-only/u);
   assert.match(architecture, /```mermaid[\s\S]*flowchart LR/u);
   assert.match(architecture, /Подготовленный путь аналитика[\s\S]*Готовый репозиторий кода R4/u);
-  assert.match(architecture, /sdd-credit-calculator-stage-4-example\//u);
+  assert.match(architecture, /sdd-guide-credit-calculator-stage-4-code\//u);
   assert.match(architecture, /переносить или удалять старые требования не нужно/u);
   assert.match(architecture, /root\.source: declared/u);
   assert.match(architecture, /личные пары и service pins не заменяются автоматически/u);
@@ -211,7 +248,8 @@ test("all Store reads use explicit root checks and the service workspace stays r
   for (const content of [readme, organizer, architecture]) {
     assert.match(content, /--store sdd-credit-calculator-product-meta/u);
   }
-  assert.match(readme, /store doctor sdd-credit-calculator-product-meta --json/u);
+  const setup = await readFile(resolve(root, ".agents/skills/setup-analysis-workspace/SKILL.md"), "utf8");
+  assert.match(setup, /store doctor <store-id> --json/u);
   assert.match(readme, /\.workspace\/services\/credit-calculator.*только для чтения/u);
   assert.match(organizer, /prepare-course-import\.ts stage/u);
   assert.match(organizer, /prepare-course-import\.ts verify/u);
