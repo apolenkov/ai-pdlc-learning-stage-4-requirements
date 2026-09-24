@@ -8,10 +8,10 @@ on:
       runner:
         description: Runner label
         required: true
-        default: ubuntu-latest
+        default: course-meta
         type: choice
         options:
-          - ubuntu-latest
+          - course-meta
           - dtl-arc
           - dtl-arc-4c8r
 
