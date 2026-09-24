@@ -22,16 +22,17 @@ flowchart LR
 
 ## Подготовленный путь аналитика
 
-Организатор готовит, дважды проверяет и публикует personal import-base по [отдельной инструкции](../organizer-stage-4.md). Аналитик создаёт fork с копированием всех веток, клонирует опубликованную ветку из своего fork в каноническую папку и начинает с OpenCode:
+Организатор готовит, дважды проверяет и публикует personal import-base по [отдельной инструкции](../organizer-stage-4.md). Аналитик создаёт fork с копированием всех веток, клонирует опубликованную ветку из своего fork в каноническую папку и работает из VS Code с агентом Kilo:
 
 ```bash
 git clone --branch course/<LOGIN>/stage-4-import-base --single-branch \
   <FORK_REPOSITORY_URL> sdd-guide-credit-calculator-stage-4-requirements
 cd sdd-guide-credit-calculator-stage-4-requirements
-opencode
 ```
 
-В OpenCode ученик явно вызывает `setup-analysis-workspace`. Skill проверяет
+В чате агента Kilo ученик явно вызывает `setup-analysis-workspace`;
+терминальный `opencode` из корня клона остаётся необязательной альтернативой,
+а не обязательным мостом. Skill проверяет
 requirements base/SHA, выполняет setup, создаёт либо проверяет соседний code
 checkout на точном service pin, запускает `check:code`, связывает Store, два
 реальных bootstrap и `check:store`. При конфликтующем Store root или существующем
