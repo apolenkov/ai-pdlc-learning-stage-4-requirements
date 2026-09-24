@@ -8,16 +8,16 @@ on:
       runner:
         description: Runner label
         required: true
-        default: ubuntu-latest
+        default: course-meta
         type: choice
         options:
-          - ubuntu-latest
+          - course-meta
           - dtl-arc
           - dtl-arc-4c8r
 
 jobs:
   check:
-    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner || 'course-meta' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
