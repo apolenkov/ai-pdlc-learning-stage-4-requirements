@@ -110,7 +110,7 @@ test("learner uses a fork-first fail-closed Git flow", async () => {
   assert.match(readme, /remote_ref=.*git ls-remote --heads origin[\s\S]*?test -n "\$remote_ref"[\s\S]*?remote_head=\$\{remote_ref%%\[\[:space:\]\]\*\}/u);
   assert.match(readme, /test "\$remote_head" = "<IMPORT_BASE_SHA>"/u);
   assert.doesNotMatch(readme, /remote add fork|push_remote=fork|git push[^\n]*upstream|git push[^\n]*\bmain\b|--force|ls-remote[^\n]*\|/u);
-  assert.match(readme, /opencode[\s\S]*?setup-analysis-workspace[\s\S]*?npm ci[\s\S]*?npm run setup/u);
+  assert.match(readme, /VS Code[\s\S]*?setup-analysis-workspace[\s\S]*?npm ci[\s\S]*?npm run setup/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-import-base/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-amount-limits/u);
   assert.match(readme, /Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость/u);
