@@ -6,7 +6,7 @@ check:
   tags:
     - docker
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_PROTECTED == "true" && $CI_PROJECT_PATH == "example-group/sdd-guide-credit-calculator-stage-4-requirements"'
   timeout: 10m
   script:
     - npm ci
