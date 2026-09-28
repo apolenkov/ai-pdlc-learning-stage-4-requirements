@@ -1,6 +1,8 @@
 check:
   stage: test
-  image: node:22
+  image:
+    name: gitlab.example.invalid:5005/example-group/sdd-guide-credit-calculator-stage-4-requirements/ci-node:22-bullseye-git239
+    entrypoint: [""]
   tags:
     - docker
   rules:
