@@ -53,9 +53,9 @@ Planning SHA и service SHA фиксируют независимые роли: 
 `<IMPORT_BASE_SHA>`, исходный `<PLANNING_SHA>`, независимый `<SERVICE_SHA>` и
 `<REVIEW_REFERENCE>`. Базовую ветку создаёт организатор, ученик её не создаёт.
 
-Откройте `<META_REPOSITORY_URL>` в GitHub Enterprise, нажмите **Fork** и снимите флаг
-**Copy the main branch only**, чтобы в fork попали все ветки. Затем клонируйте
-свой fork; после clone `origin` — ваш fork:
+Откройте `<META_REPOSITORY_URL>` в GitLab, нажмите **Fork** и выберите своё
+личное пространство — GitLab копирует в fork все ветки, отдельная отметка не
+нужна. Затем клонируйте свой fork; после clone `origin` — ваш fork:
 
 ```bash
 set -eu
@@ -244,13 +244,13 @@ remote_head=${remote_ref%%[[:space:]]*}
 test "$remote_head" = "$local_head"
 ```
 
-Откройте planning PR внутри своего fork: source
-`course/<LOGIN>/stage-4-amount-limits` → base
+Откройте planning MR внутри своего fork: source
+`course/<LOGIN>/stage-4-amount-limits` → target
 `course/<LOGIN>/stage-4-import-base`, не в общую `main`. Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость. После содержательных
 правок оба review повторяются для актуального diff. После двух подтверждений
-смёржьте учебный PR в личную base-ветку своего корпоративного fork; в общую
-`main` не сливайте. Если GitHub предлагает force push или PR в upstream,
-остановитесь и исправьте source/base.
+смёржьте учебный MR в личную base-ветку своего корпоративного fork; в общую
+`main` не сливайте. Если GitLab предлагает target в upstream `example-group` или другой
+проект, остановитесь и исправьте source/target.
 
 ## STOP: реализация отдельно
 

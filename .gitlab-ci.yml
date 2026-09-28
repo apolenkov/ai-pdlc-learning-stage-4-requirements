@@ -1,0 +1,11 @@
+check:
+  stage: test
+  image: node:22
+  tags:
+    - docker
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+  timeout: 10m
+  script:
+    - npm ci
+    - npm run check

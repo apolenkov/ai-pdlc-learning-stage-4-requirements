@@ -64,8 +64,8 @@ test("OpenSpec Store identity is committed and points to this meta repository", 
   ]);
   assert.match(store, /^version:\s*1$/m);
   assert.match(store, /^id:\s*sdd-credit-calculator-product-meta$/m);
-  assert.match(store, /remote:\s*https:\/\/github\.example\.invalid\/apolenkov\/sdd-guide-credit-calculator-stage-4-requirements\.git/);
-  assert.match(lock, /repository:\s*https:\/\/github\.example\.invalid\/apolenkov\/sdd-guide-credit-calculator-stage-4-code\.git/u);
+  assert.match(store, /remote:\s*https:\/\/gitlab\.example\.invalid\/example-group\/sdd-guide-credit-calculator-stage-4-requirements\.git/);
+  assert.match(lock, /repository:\s*https:\/\/gitlab\.example\.invalid\/example-group\/sdd-guide-credit-calculator-stage-4-code\.git/u);
   assert.match(lock, /commit:\s*25cef95fabc1355d3dfeee60827e903c40e1e8a2/u);
 });
 
@@ -98,7 +98,7 @@ test("learner uses a fork-first fail-closed Git flow", async () => {
   const contributing = await readFile(resolve(root, "CONTRIBUTING.md"), "utf8");
   const organizer = await readFile(resolve(root, "docs/organizer-stage-4.md"), "utf8");
   assert.match(readme, /Организатор готовит и публикует персональную ветку/u);
-  assert.match(readme, /снимите флаг.*Copy the main branch only/su);
+  assert.match(readme, /в GitLab, нажмите \*\*Fork\*\*[\s\S]*?копирует в fork все ветки/u);
   assert.match(readme, /git clone --branch course\/<LOGIN>\/stage-4-import-base --single-branch \\\s+<FORK_REPOSITORY_URL> \\\s+sdd-guide-credit-calculator-stage-4-requirements/u);
   assert.match(readme, /origin.*ваш fork/su);
   assert.match(readme, /git clone --no-checkout <FORK_REPOSITORY_URL>/u);
@@ -114,7 +114,7 @@ test("learner uses a fork-first fail-closed Git flow", async () => {
   assert.match(readme, /course\/<LOGIN>\/stage-4-import-base/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-amount-limits/u);
   assert.match(readme, /Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость/u);
-  assert.match(readme, /смёржьте учебный PR в личную base-ветку/u);
+  assert.match(readme, /смёржьте учебный MR в личную base-ветку/u);
   assert.match(readme, /git push -u origin "\$branch"[\s\S]*?test "\$remote_head" = "\$local_head"/u);
   assert.match(readme, /задачи реализации остаются `- \[ \]`/u);
   assert.match(contributing, /fork[\s\S]*?копированием всех веток[\s\S]*?клонирует свой fork/iu);
@@ -138,7 +138,7 @@ test("organizer hands off one complete immutable Stage 4 contract", async () => 
   assert.match(organizer, /IMPORT_BASE_SHA=.*git rev-parse HEAD/u);
   assert.match(organizer, /remote_import_base_ref=.*git ls-remote --heads origin[\s\S]*?test -n "\$remote_import_base_ref"[\s\S]*?remote_import_base_sha=\$\{remote_import_base_ref%%\[\[:space:\]\]\*\}/u);
   assert.match(organizer, /test "\$remote_import_base_sha" = "\$IMPORT_BASE_SHA"/u);
-  assert.match(organizer, /fork[\s\S]*?Copy the main branch only[\s\S]*?все ветки/iu);
+  assert.match(organizer, /в GitLab[\s\S]*?fork[\s\S]*?все ветки/iu);
 });
 
 test("README numbered learner steps are sequential", async () => {

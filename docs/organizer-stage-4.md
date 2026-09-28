@@ -185,8 +185,8 @@ SERVICE_SHA=<SERVICE_SHA>
 REVIEW_REFERENCE=<REVIEW_REFERENCE>
 ```
 
-Ученик открывает `<META_REPOSITORY_URL>` в GitHub Enterprise, создаёт fork и
-снимает флаг **Copy the main branch only**, чтобы скопировать все ветки. Затем он
+Ученик открывает `<META_REPOSITORY_URL>` в GitLab и создаёт fork в своё личное
+пространство — GitLab копирует все ветки. Затем он
 клонирует `<IMPORT_BASE_BRANCH>` из своего fork в каноническую папку
 `sdd-guide-credit-calculator-stage-4-requirements`, сверяет `<IMPORT_BASE_SHA>`,
 открывает папку в VS Code и вызывает project skill `setup-analysis-workspace`
