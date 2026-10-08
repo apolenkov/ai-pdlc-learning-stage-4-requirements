@@ -15,7 +15,7 @@
 
 Прочитайте `CONTEXT.md`, `product.yaml`, `services.lock.yaml` и `openspec/config.yaml`.
 
-До успешной поздней точки входа разберите запрос и intent: `request-and-answers.md`, `intent-template.md`, `intents/clear-calculation-result.md` и отдельный запрос R4 `intents/intent-2-credit-limit.md`. R1–R3 используют один broad intent; лимит R4 — самостоятельный запрос.
+До успешной поздней точки входа разберите запрос и замыслы: `request-and-answers.md` — источник фактов упражнения, `intent-template.md` — общий шаблон, `examples/clear-calculation-result.md` — предоставленный пример, а `intents/intent-2-credit-limit.md` — отдельный запрос R4. В личной истории ученика один актуальный файл `intents/clear-calculation-result.md` проходит через R1–R3; он не является второй копией примера из этого шаблонного репозитория.
 
 В personal import-base дополнительно прочитайте:
 
