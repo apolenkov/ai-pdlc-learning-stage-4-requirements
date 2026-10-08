@@ -113,7 +113,7 @@ test("learner uses a fork-first fail-closed Git flow", async () => {
   assert.match(readme, /VS Code[\s\S]*?setup-analysis-workspace[\s\S]*?npm ci[\s\S]*?npm run setup/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-import-base/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-amount-limits/u);
-  assert.match(readme, /Другой аналитик проверяет требования, затем разработчик или архитектор — реализуемость/u);
+  assert.match(readme, /Для текущего diff нужны четыре отметки:[\s\S]*?руководителя проекта[\s\S]*?аналитика[\s\S]*?технического руководителя[\s\S]*?архитектора[\s\S]*?R4 затрагивает интеграцию с системой банка/u);
   assert.match(readme, /смёржьте учебный MR в личную base-ветку/u);
   assert.match(readme, /git push -u origin "\$branch"[\s\S]*?test "\$remote_head" = "\$local_head"/u);
   assert.match(readme, /задачи реализации остаются `- \[ \]`/u);
