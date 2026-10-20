@@ -1,3 +1,5 @@
 #!/bin/sh
 set -eu
+# Tests create separate repositories and must not inherit the hook's Git context.
+unset $(git rev-parse --local-env-vars)
 npm run check
