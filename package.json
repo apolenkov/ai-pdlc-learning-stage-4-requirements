@@ -16,11 +16,12 @@
     "openspec:validate": "openspec validate --all --strict --no-interactive",
     "privacy:scan": "tsx scripts/privacy-scan.ts",
     "test": "tsx --test tests/*.test.ts",
-    "check": "npm run typecheck && npm test && npm run skills:check && npm run openspec:validate && npm run privacy:scan"
+    "check": "npm run typecheck && npm test && npm run skills:check && npm run openspec:validate && npm run privacy:scan",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
-    "@fission-ai/openspec": "1.14.1",
-    "@types/node": "^26.6.4",
+    "@fission-ai/openspec": "1.14.3",
+    "@types/node": "^26.6.5",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
