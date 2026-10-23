@@ -30,7 +30,7 @@
 
 1. Получить у организатора `<META_REPOSITORY_URL>`, `IMPORT_BASE_BRANCH`, `IMPORT_BASE_SHA`, `PLANNING_SHA`, `SERVICE_SHA` и `REVIEW_REFERENCE`; создать fork с копированием всех веток и клонировать personal import-base из fork в `sdd-guide-credit-calculator-stage-4-requirements`.
 2. Если ветка не скопировалась, применять fallback только после доказанного отсутствия ветки в fork и точного совпадения upstream SHA с `IMPORT_BASE_SHA`; не писать в upstream, `main` и не использовать force.
-3. Открыть requirements root в VS Code и в чате агента Kilo получить Git root и прочитать целиком именно `<ABSOLUTE-GIT-ROOT>/.agents/skills/setup-analysis-workspace/SKILL.md`. Одноимённый глобальный или любой другой skill не выполнять. Терминальный `opencode` из того же root — необязательная альтернатива того же входа, а не обязательный мост.
+3. Открыть requirements root в VS Code и в чате агента Kilo получить Git root и прочитать целиком именно `<ABSOLUTE-GIT-ROOT>/.agents/skills/setup-analysis-workspace/SKILL.md`. Одноимённый глобальный или любой другой skill не выполнять. Навыки OpenSpec лежат в корне репозитория в универсальном `.agents/skills` и читаются Kilo автоматически.
 4. Полный project skill проверяет requirements base/SHA, создаёт либо проверяет соседний `sdd-guide-credit-calculator-stage-4-code` на точном service pin, выполняет setup/check:code, безопасно связывает Store, дважды запускает bootstrap и проверяет `check:store`. Существующие папки и конфликтующий Store root не заменяются без отдельного подтверждения точных путей.
 5. Только после чистого отчёта создать аналитическую ветку, пройти original `grill-with-docs`, при оставшейся существенной развилке OpenSpec Explore, затем OpenSpec Propose и человеческое review.
 

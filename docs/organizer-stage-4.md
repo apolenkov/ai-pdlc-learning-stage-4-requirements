@@ -190,8 +190,8 @@ REVIEW_REFERENCE=<REVIEW_REFERENCE>
 клонирует `<IMPORT_BASE_BRANCH>` из своего fork в каноническую папку
 `sdd-guide-credit-calculator-stage-4-requirements`, сверяет `<IMPORT_BASE_SHA>`,
 открывает папку в VS Code и вызывает project skill `setup-analysis-workspace`
-из чата агента Kilo; терминальный `opencode` остаётся необязательной
-альтернативой. Если
+из чата агента Kilo; навыки OpenSpec лежат в универсальном `.agents/skills`
+и читаются Kilo автоматически. Если
 ветка не скопировалась, ученик использует только fail-closed fallback из README;
 не предлагайте создавать ветку от `main`, перезаписывать fork или писать в
 upstream.

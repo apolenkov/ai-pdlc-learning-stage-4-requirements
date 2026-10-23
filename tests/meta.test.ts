@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { execFile } from "node:child_process";
@@ -184,12 +185,13 @@ test("organizer copy guard stops before overwriting an inherited Change", async 
   }
 });
 
-test("OpenCode receives the Store-aware OpenSpec workflows from the repository", async () => {
+test("Store-aware OpenSpec workflows live in the universal .agents/skills tree", async () => {
   for (const skill of ["openspec-propose", "openspec-apply-change", "openspec-archive-change"]) {
-    const content = await readFile(resolve(root, ".opencode", "skills", skill, "SKILL.md"), "utf8");
+    const content = await readFile(resolve(root, ".agents", "skills", skill, "SKILL.md"), "utf8");
     assert.match(content, /Store selection:/);
-    assert.match(content, /generatedBy:\s*"1\.12\.0"/);
+    assert.match(content, /generatedBy:\s*"1\.14\.\d+"/);
   }
+  assert.equal(existsSync(resolve(root, ".opencode")), false, ".opencode must stay retired");
 });
 
 test("Store and Workset architecture keeps pinned workspace read-only", async () => {

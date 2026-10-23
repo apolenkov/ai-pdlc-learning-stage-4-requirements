@@ -31,8 +31,8 @@ cd sdd-guide-credit-calculator-stage-4-requirements
 ```
 
 В чате агента Kilo ученик явно вызывает `setup-analysis-workspace`;
-терминальный `opencode` из корня клона остаётся необязательной альтернативой,
-а не обязательным мостом. Skill проверяет
+навыки OpenSpec лежат в универсальном `.agents/skills` и читаются Kilo
+автоматически. Skill проверяет
 requirements base/SHA, выполняет setup, создаёт либо проверяет соседний code
 checkout на точном service pin, запускает `check:code`, связывает Store, два
 реальных bootstrap и `check:store`. При конфликтующем Store root или существующем

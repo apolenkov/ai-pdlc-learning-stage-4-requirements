@@ -1,0 +1,6 @@
+# OpenSpec integration lives in the universal .agents/skills location (Kilo and
+# other agents load it automatically) plus Kilo slash commands. It is generator
+# output: rewritten by `openspec update`, cannot be hand-split, so it is exempt
+# from the global agent-size-guard, whose 20 000-byte limit targets authored files.
+.agents/skills/openspec-*/** linguist-generated
+.kilo/command/** linguist-generated
