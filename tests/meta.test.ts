@@ -65,8 +65,8 @@ test("OpenSpec Store identity is committed and points to this meta repository", 
   ]);
   assert.match(store, /^version:\s*1$/m);
   assert.match(store, /^id:\s*sdd-credit-calculator-product-meta$/m);
-  assert.match(store, /remote:\s*https:\/\/gitlab\.example\.invalid\/example-group\/sdd-guide-credit-calculator-stage-4-requirements\.git/);
-  assert.match(lock, /repository:\s*https:\/\/gitlab\.example\.invalid\/example-group\/sdd-guide-credit-calculator-stage-4-code\.git/u);
+  assert.match(store, /remote:\s*https:\/\/github\.com\/apolenkov\/sdd-guide-credit-calculator-stage-4-requirements\.git/);
+  assert.match(lock, /repository:\s*https:\/\/github\.com\/apolenkov\/sdd-guide-credit-calculator-stage-4-code\.git/u);
   assert.match(lock, /commit:\s*25cef95fabc1355d3dfeee60827e903c40e1e8a2/u);
 });
 
@@ -99,7 +99,7 @@ test("learner uses a fork-first fail-closed Git flow", async () => {
   const contributing = await readFile(resolve(root, "CONTRIBUTING.md"), "utf8");
   const organizer = await readFile(resolve(root, "docs/organizer-stage-4.md"), "utf8");
   assert.match(readme, /Организатор готовит и публикует персональную ветку/u);
-  assert.match(readme, /в GitLab, нажмите \*\*Fork\*\*[\s\S]*?копирует в fork все ветки/u);
+  assert.match(readme, /на GitHub, нажмите \*\*Fork\*\*[\s\S]*?снимите флажок\s+\*\*Copy the main branch only\*\*/u);
   assert.match(readme, /git clone --branch course\/<LOGIN>\/stage-4-import-base --single-branch \\\s+<FORK_REPOSITORY_URL> \\\s+sdd-guide-credit-calculator-stage-4-requirements/u);
   assert.match(readme, /origin.*ваш fork/su);
   assert.match(readme, /git clone --no-checkout <FORK_REPOSITORY_URL>/u);
@@ -114,8 +114,8 @@ test("learner uses a fork-first fail-closed Git flow", async () => {
   assert.match(readme, /VS Code[\s\S]*?setup-analysis-workspace[\s\S]*?npm ci[\s\S]*?npm run setup/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-import-base/u);
   assert.match(readme, /course\/<LOGIN>\/stage-4-amount-limits/u);
-  assert.match(readme, /Для текущего diff нужны четыре отметки:[\s\S]*?руководителя проекта[\s\S]*?аналитика[\s\S]*?технического руководителя[\s\S]*?архитектора[\s\S]*?R4 затрагивает интеграцию с системой банка/u);
-  assert.match(readme, /смёржьте учебный MR в личную base-ветку/u);
+  assert.match(readme, /[Оо]добрение[\s\S]*?владелец продукта[\s\S]*?Approve[\s\S]*?[Аа]налитик[\s\S]*?техлид[\s\S]*?интеграц[\s\S]*?системой банка[\s\S]*?архитектора приглашают через @/u);
+  assert.match(readme, /смёржьте учебный PR в личную base-ветку/u);
   assert.match(readme, /git push -u origin "\$branch"[\s\S]*?test "\$remote_head" = "\$local_head"/u);
   assert.match(readme, /задачи реализации остаются `- \[ \]`/u);
   assert.match(contributing, /fork[\s\S]*?копированием всех веток[\s\S]*?клонирует свой fork/iu);
@@ -199,7 +199,7 @@ test("Store and Workset architecture keeps pinned workspace read-only", async ()
   assert.match(architecture, /единственным активным владельцем/u);
   assert.match(architecture, /\.workspace\/services\/credit-calculator.*read-only/u);
   assert.match(architecture, /```mermaid[\s\S]*flowchart LR/u);
-  assert.match(architecture, /Подготовленный путь аналитика[\s\S]*Готовый репозиторий кода R4/u);
+  assert.match(architecture, /Подготовленный путь аналитика[\s\S]*Готовый репозиторий кода практикума разработки/u);
   assert.match(architecture, /sdd-guide-credit-calculator-stage-4-code\//u);
   assert.match(architecture, /переносить или удалять старые требования не нужно/u);
   assert.match(architecture, /root\.source: declared/u);

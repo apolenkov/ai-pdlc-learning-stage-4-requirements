@@ -1,4 +1,4 @@
-# Подготовка и публикация personal import-base R4
+# Подготовка и публикация personal import-base шагов 4–5
 
 Эту процедуру выполняет организатор в отдельном чистом checkout метарепозитория. Ученик не повторяет импорт: он создаёт fork с копированием всех веток и клонирует уже опубликованную personal import-base из своего fork. Процедура переносит весь фактический planning inventory выбранного Git SHA, но не код, dependencies или runtime-тесты сервиса.
 
@@ -7,7 +7,7 @@
 До начала зафиксируйте:
 
 - `<LOGIN>` — логин ученика;
-- `<PLANNING_SOURCE_CHECKOUT>` — соседний checkout согласованного результата SDD/OpenSpec; он может включать факультативную R3;
+- `<PLANNING_SOURCE_CHECKOUT>` — соседний checkout согласованного результата SDD/OpenSpec; он включает активный Change шага 3;
 - `<PLANNING_SHA>` — его полный 40-символьный Git SHA;
 - `<SERVICE_SHA>` — независимо выбранный полный SHA контекста сервиса;
 - `<META_REPOSITORY_URL>` — HTTPS URL метарепозитория;
@@ -107,7 +107,7 @@ cp docs/templates/requirements-traceability.md docs/course/requirements-traceabi
 
 Заполните оба файла в `docs/course/` без оставшихся `<...>`. В transfer перечислите все активные Changes из manifest, `<PLANNING_SHA>`, отдельный `<SERVICE_SHA>` и фактические review. В traceability добавьте каждое унаследованное требование и сценарий; не подгоняйте строки под заранее заданное число.
 
-Для новой personal import-base используйте сервис `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code.git` и отдельно проверенный полный `<SERVICE_SHA>` из актуального `services.lock.yaml` эталона. Переименование репозитория само по себе не разрешает менять service SHA. Происхождение планирования указывает на конкретный согласованный planning source после обязательной практики SDD и OpenSpec; факультативная R3 может входить в его историю. Не заменяйте его адресом нового сервиса и не записывайте planning SHA в service pin. Уже опубликованные личные базы и их pins не меняйте автоматически. В `openspec/config.yaml` не перечисляйте случайный фиксированный набор унаследованных Changes: источником служит manifest.
+Для новой personal import-base используйте сервис `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code.git` и отдельно проверенный полный `<SERVICE_SHA>` из актуального `services.lock.yaml` эталона. Переименование репозитория само по себе не разрешает менять service SHA. Происхождение планирования указывает на конкретный согласованный planning source после шага 3 «Изменение в OpenSpec»; шаг 3 входит в его историю. Не заменяйте его адресом нового сервиса и не записывайте planning SHA в service pin. Уже опубликованные личные базы и их pins не меняйте автоматически. В `openspec/config.yaml` не перечисляйте случайный фиксированный набор унаследованных Changes: источником служит manifest.
 
 ## 3. Проверьте точность переноса
 

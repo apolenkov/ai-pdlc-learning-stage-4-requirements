@@ -1,4 +1,4 @@
-# Передача planning-контракта в personal import-base R4
+# Передача planning-контракта в personal import-base шагов 4–5
 
 Организатор копирует этот шаблон в `docs/course/stage-3-transfer.md` и заменяет все `<...>`. Machine-readable источником inventory служит соседний `planning-provenance.json`.
 
