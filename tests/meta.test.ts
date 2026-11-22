@@ -124,6 +124,26 @@ test("learner uses a fork-first fail-closed Git flow", async () => {
   assert.match(organizer, /if \[ -e "openspec\/changes\/\$inherited_change" \]; then[\s\S]*?STOP: target Change already exists[\s\S]*?exit 1[\s\S]*?cp -R/u);
 });
 
+test("self-study learner builds a personal base from the published example and uses two PR templates", async () => {
+  const [readme, template] = await Promise.all([
+    readFile(resolve(root, "README.md"), "utf8"),
+    readFile(resolve(root, ".github/pull_request_template.md"), "utf8"),
+  ]);
+  assert.match(readme, /git fetch origin course\/example\/stage-4-import-base\n\s*git rev-parse FETCH_HEAD/u);
+  assert.match(readme, /git switch -c course\/your_login\/stage-4-import-base FETCH_HEAD\n\s*git push -u origin course\/your_login\/stage-4-import-base/u);
+  assert.match(readme, /сравните полный 40-значный SHA с выводом `git rev-parse FETCH_HEAD`/u);
+  assert.match(readme, /целью PR анализа[^\n]*выберите личную базу `course\/your_login\/stage-4-import-base`/u);
+  assert.match(readme, /### С организатором\n\nОрганизатор передаёт/u);
+  assert.match(readme, /в GitLab шаблона `\.gitlab`\s+нет[\s\S]*?скопируйте раздел «Запрос 1»/u);
+  assert.match(readme, /intents\/intent-2-credit-limit\.md/u);
+  assert.match(readme, /изменён в системе банка[\s\S]*?без правки формулы/u);
+  assert.match(readme, /как часто калькулятор получает обновлённый лимит[\s\S]*?недоступности системы банка/u);
+  assert.match(template, /## Запрос 1: анализ[\s\S]*?target `course\/your_login\/stage-4-import-base`[\s\S]*?- \[ \]/u);
+  assert.match(template, /Ссылка на обсуждение с архитектором обязательна/u);
+  assert.match(template, /## Запрос 2: статусы задач после реализации[\s\S]*?target `main` своего fork[\s\S]*?- \[x\]/u);
+  assert.match(template, /В GitLab шаблона `\.gitlab` нет/u);
+});
+
 test("organizer hands off one complete immutable Stage 4 contract", async () => {
   const organizer = await readFile(resolve(root, "docs/organizer-stage-4.md"), "utf8");
   for (const field of [
