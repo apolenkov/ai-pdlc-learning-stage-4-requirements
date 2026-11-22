@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "repository": "https://github.com/apolenkov/sdd-guide-credit-calculator-stage-1.git",
+    "commit": "a304386b1a33d160cbc297de2812ddeaeddfe380",
+    "workspace": ".workspace/planning/stage-3"
+  },
+  "imports": {
+    "mainSpecsRoot": "openspec/specs",
+    "activeChanges": [
+      "add-payment-summary",
+      "add-reset-and-years-term"
+    ]
+  },
+  "files": [
+    {
+      "path": "openspec/changes/add-payment-summary/.openspec.yaml",
+      "blob": "1a62d62b5b53a6566170b6badadd17e0c687568e",
+      "sha256": "0d815ffdda0fec4cf9c7b2346a209fdec1bcde4f92cfb10c2075e2e381fd16f8"
+    },
+    {
+      "path": "openspec/changes/add-payment-summary/design.md",
+      "blob": "d0f082d45974f4c133ecb141ad98484294aa3edd",
+      "sha256": "583a09963bfa28e2bb97e8fc5739c1d5161ae2f8aac7a8691f857b040b68707b"
+    },
+    {
+      "path": "openspec/changes/add-payment-summary/proposal.md",
+      "blob": "c545ae5f4fd69ba003d61910ba2a0e2971cf36a0",
+      "sha256": "3bbb03fec2ca0606b05e75f38ff55b95bf1d856418e900d176fa29f6037a0e28"
+    },
+    {
+      "path": "openspec/changes/add-payment-summary/specs/credit-payment-summary/spec.md",
+      "blob": "f79271c330c02c02c481bb6f2f9b2fccae183c32",
+      "sha256": "5ac0e7d9c3795a1c4adef708fe3edf8bfc185fab7301003d72cddaf6035eb365"
+    },
+    {
+      "path": "openspec/changes/add-payment-summary/tasks.md",
+      "blob": "2fd0a03097f32bd4338914b6f4394c87e8813979",
+      "sha256": "9f51373afddd422f9f6afb56260bd9af759327fe01e74388ba1b6e701177c9a1"
+    },
+    {
+      "path": "openspec/changes/add-reset-and-years-term/.openspec.yaml",
+      "blob": "1a62d62b5b53a6566170b6badadd17e0c687568e",
+      "sha256": "0d815ffdda0fec4cf9c7b2346a209fdec1bcde4f92cfb10c2075e2e381fd16f8"
+    },
+    {
+      "path": "openspec/changes/add-reset-and-years-term/design.md",
+      "blob": "d89432d28c18d522dc259f296428e54a231a4699",
+      "sha256": "8027caef1db7a286f9597c31670efb1d64df389fbc62549854602fd588b2d889"
+    },
+    {
+      "path": "openspec/changes/add-reset-and-years-term/proposal.md",
+      "blob": "ecc28a610967e25333be5f07e54174acab152a62",
+      "sha256": "0d306d560cb9fab100b23d999e1504c5ec00d687102b3d24aa0ad7da1295a7f3"
+    },
+    {
+      "path": "openspec/changes/add-reset-and-years-term/specs/credit-calculator/spec.md",
+      "blob": "e7e918f21d613736acd9a17255030bb6e175c28f",
+      "sha256": "c1a35ec54e0cace739b8bf307d7a57ea86282571dc99d05cf9e8422a1c8fba17"
+    },
+    {
+      "path": "openspec/changes/add-reset-and-years-term/tasks.md",
+      "blob": "b4b8205f66d0fcc55db11a29addffbaed632b216",
+      "sha256": "63ca6bce9770638d81c5a7b4f0af8c74c8dc19d8a10db6d0d9223c76a47f01c6"
+    },
+    {
+      "path": "openspec/changes/add-reset-and-years-term/traceability.md",
+      "blob": "83a0e393716181b5803f89d8e16be49fe1d883d8",
+      "sha256": "41739bbcbacde45029fa8b2a4fdd805c8cd0fbf60951f87c4e89f20e9cec31dc"
+    },
+    {
+      "path": "openspec/specs/.gitkeep",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
