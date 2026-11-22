@@ -5,7 +5,7 @@
 | | |
 | --- | --- |
 | Шаг курса | [Шаг 4. Команда продукта](https://apolenkov.github.io/customdev-learning/guides/s4-team.html) и [шаг 5. Контекст продукта](https://apolenkov.github.io/customdev-learning/guides/s4-product.html) |
-| Вход | учебная база — ветка `course/<LOGIN>/stage-4-import-base`, которую готовит организатор; без организатора — опубликованная `course/example/stage-4-import-base` из этого репозитория: вы получаете её из своего fork, проверяете SHA и сами создаёте из неё личную базу `course/your_login/stage-4-import-base` |
+| Вход | учебная база — ветка `course/<LOGIN>/stage-4-import-base`, которую готовит организатор; без организатора — опубликованная `course/example/stage-4-import-base` из этого репозитория: вы получаете её из своего fork, сверяете SHA с исходным репозиторием курса и сами создаёте из неё личную базу `course/your_login/stage-4-import-base` |
 | Действие | в личной ветке от базы аналитик готовит Change в `openspec/`, сверяясь с read-only снимками в `.workspace/` |
 | Результат | PR с Change в своём fork метарепозитория, одобренный владельцем продукта; архитектор приглашён через @, потому что изменение затрагивает интеграцию с системой банка |
 
@@ -80,7 +80,7 @@ Planning SHA и service SHA фиксируют независимые роли: 
 
 ### Самостоятельно, без организатора
 
-Готовой личной базы у вас нет: её создаёте вы сами из опубликованного примера `course/example/stage-4-import-base`. Пример — единственная допустимая стартовая точка; `main` и ветки без проверки SHA не используйте.
+Готовой личной базы у вас нет: её создаёте вы сами из опубликованного примера `course/example/stage-4-import-base`. Пример — единственная допустимая стартовая точка; `main` и ветки без проверки SHA не используйте. Договор подготовки из шести значений, который с организатором передаёт он, вы собираете сами в шагах 4–7.
 
 1. Создайте fork. В GitHub нажмите **Fork** и снимите флажок **Copy the main branch only**; в GitLab — **New project → Import project → Repository by URL** (импорт по адресу копирует все ветки). В терминале fork не создаётся: этот шаг делается только в интерфейсе. Увидите свою копию репозитория; адрес на странице копии — адрес вашего fork.
 2. Скопируйте адрес своего fork кнопкой **Code** (GitHub) или **Code → Clone with HTTPS** (GitLab) и клонируйте его. Адрес — ваш fork или проект в GitLab, не репозиторий организации `apolenkov`:
@@ -100,7 +100,13 @@ Planning SHA и service SHA фиксируют независимые роли: 
    ```
 
    Если fetch отвечает, что такой ветки нет, флажок **Copy the main branch only** не сняли. Остановитесь: создайте fork заново со снятым флажком (старый удаляйте только если в нём нет вашей работы) и не подставляйте `main`.
-4. Проверьте SHA. В GitHub или GitLab откройте **Branches**, выберите `course/example/stage-4-import-base`, откройте её последний коммит и сравните полный 40-значный SHA с выводом `git rev-parse FETCH_HEAD`. При расхождении остановитесь и сообщите автору курса адрес, ветку и оба SHA. Совпавший SHA — ваш `IMPORT_BASE_SHA`.
+4. Сверьте SHA с исходным репозиторием курса, а не со своим fork: копия ветки в fork могла устареть.
+
+   ```bash
+   git ls-remote https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git refs/heads/course/example/stage-4-import-base
+   ```
+
+   Первая колонка вывода — SHA опубликованного примера. Сравните его с выводом `git rev-parse FETCH_HEAD` из шага 3. Совпал — это ваш `IMPORT_BASE_SHA`. Не совпал — копия в fork устарела; вывод пустой — пример в исходном репозитории не опубликован. В обоих случаях остановитесь, базу не создавайте и сообщите автору курса адрес fork и оба SHA.
 5. Создайте из него личную базу и опубликуйте её в своём fork:
 
    ```bash
@@ -110,7 +116,27 @@ Planning SHA и service SHA фиксируют независимые роли: 
    ```
 
    Увидите `## course/your_login/stage-4-import-base...origin/course/your_login/stage-4-import-base` без `ahead`/`behind`. Личная рабочая ветка создаётся позже, в разделе 4, от этой базы.
-6. В разделе 2 назовите агенту проверенный SHA одной строкой после основного сообщения: `IMPORT_BASE_SHA: полный SHA из шага 4`. Дальше везде, где в тексте стоит `<LOGIN>`, читайте `your_login`; целью PR анализа (раздел 8) выберите личную базу `course/your_login/stage-4-import-base`, а не `main` и не ветку в upstream.
+6. Возьмите остальные значения из файлов базы. Им можно доверять: SHA базы сверен с исходным репозиторием в шаге 4.
+
+   ```bash
+   grep '"commit"' docs/course/planning-provenance.json
+   grep 'commit:' services.lock.yaml
+   ```
+
+   Первая команда покажет `PLANNING_SHA`, вторая — `SERVICE_SHA`. `REVIEW_REFERENCE` — ссылки на review исходной версии из `docs/course/stage-3-transfer.md`; если review там «ожидается» или `pending`, пишите `pending`.
+7. В разделе 2 вставьте договор после основного сообщения агенту:
+
+   ```text
+   Учусь без организатора, договор собран по README.
+   META_REPOSITORY_URL=https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git
+   IMPORT_BASE_BRANCH=course/your_login/stage-4-import-base
+   IMPORT_BASE_SHA=<SHA из шага 4>
+   PLANNING_SHA=<SHA из planning-provenance.json>
+   SERVICE_SHA=<SHA из services.lock.yaml>
+   REVIEW_REFERENCE=<ссылки из stage-3-transfer.md или pending>
+   ```
+
+   `META_REPOSITORY_URL` — исходный репозиторий курса, из которого вы сделали fork, а не адрес fork. Дальше везде, где в тексте стоит `<LOGIN>`, читайте `your_login`; целью PR анализа (раздел 8) выберите личную базу `course/your_login/stage-4-import-base`, а не `main` и не ветку в upstream.
 
 Force push, запись в чужой репозиторий и `main` в этих шагах не нужны.
 
@@ -336,7 +362,7 @@ test "$remote_head" = "$local_head"
 
 Второй запрос — после реализации и проверки людьми на практикуме разработки, не сейчас:
 подтверждённые статусы задач уходят в `main` вашего fork. Для него отдельный раздел
-«Запрос 2: статусы после реализации» того же шаблона. Задачи в `tasks.md` отмечайте
+«Запрос 2: статусы задач после реализации» того же шаблона. Задачи в `tasks.md` отмечайте
 выполненными только после проверки людьми.
 
 ## STOP: реализация отдельно

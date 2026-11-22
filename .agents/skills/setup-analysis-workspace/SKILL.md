@@ -24,6 +24,16 @@ requirements и пункт 2, затем остановитесь. Skill не р
 другом проекте, неподготовленной базе или непустом status — STOP без сброса,
 удаления или коммита.
 
+Без организатора данные организатора не требуйте: ученик собирает договор по
+README, подраздел «Самостоятельно, без организатора». Base-ветка — личная
+`course/<LOGIN>/stage-4-import-base` в fork, HEAD равен `IMPORT_BASE_SHA`.
+`IMPORT_BASE_SHA` сверьте с `course/example/stage-4-import-base` исходного
+репозитория курса, не fork:
+`git ls-remote https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git refs/heads/course/example/stage-4-import-base`.
+Расхождение или пустой вывод — STOP. `PLANNING_SHA`, `SERVICE_SHA` и
+`REVIEW_REFERENCE` в этом маршруте берутся из manifest, `services.lock.yaml` и
+`docs/course/stage-3-transfer.md` проверенной базы.
+
 Возьмите Store ID из `store.yaml`, repository и полный service SHA из
 `services.lock.yaml`, planning SHA из manifest. Не подставляйте planning SHA
 вместо service pin или `main`. Ожидается отдельный stage-4-code, не stage-3.
