@@ -2,5 +2,5 @@ version: 1
 services:
   credit-calculator:
     repository: https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code.git
-    commit: 25cef95fabc1355d3dfeee60827e903c40e1e8a2
+    commit: 6790e7ddc635e531fd849db0f35be4dd2b71d829
     workspace: .workspace/services/credit-calculator
