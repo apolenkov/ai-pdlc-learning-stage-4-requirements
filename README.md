@@ -106,7 +106,7 @@ Planning SHA и service SHA фиксируют независимые роли: 
    git ls-remote https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git refs/heads/course/example/stage-4-import-base
    ```
 
-   Первая колонка вывода — SHA опубликованного примера. Сравните его с выводом `git rev-parse FETCH_HEAD` из шага 3. Совпал — это ваш `IMPORT_BASE_SHA`. Не совпал — копия в fork устарела; вывод пустой — пример в исходном репозитории не опубликован. В обоих случаях остановитесь, базу не создавайте и сообщите автору курса адрес fork и оба SHA.
+   Первая колонка вывода — SHA опубликованного примера. Сравните его с выводом `git rev-parse FETCH_HEAD` из шага 3. Совпал — это ваш `IMPORT_BASE_SHA`. Не совпал — копия в fork устарела: получите ветку прямо из исходного репозитория (`git fetch https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git refs/heads/course/example/stage-4-import-base`) и повторите сверку с новым `FETCH_HEAD`. Вывод `ls-remote` пустой — пример в исходном репозитории не опубликован: остановитесь, базу не создавайте и сообщите автору курса адрес fork.
 5. Создайте из него личную базу и опубликуйте её в своём fork:
 
    ```bash

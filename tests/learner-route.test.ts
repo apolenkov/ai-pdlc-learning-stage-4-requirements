@@ -73,10 +73,10 @@ test("self-study learner builds a personal base from the published example and u
   assert.match(template, /## Запрос 2: статусы задач после реализации[\s\S]*?target `main` своего fork[\s\S]*?- \[x\]/u);
   assert.match(template, /В GitLab шаблона `\.gitlab` нет/u);
   const statusRequest = template.slice(template.indexOf("## Запрос 2"));
-  assert.match(statusRequest, /Новый коммит статусов содержит только статусы задач; полный diff до `main` включает и принятое изменение требований/u);
+  assert.match(statusRequest, /Новый коммит статусов содержит только статусы задач; полный diff до `main` включает и импортированную базу[^.]*и принятое изменение требований/u);
   assert.match(statusRequest, /- \[ \] `git show <SHA-коммита-статусов>` показывает только статусы задач/u);
   assert.doesNotMatch(statusRequest, /в diff только статусы задач/u);
-  assert.match(statusRequest, /Разработчик открывает этот запрос вместе с запросом кода/u);
+  assert.match(statusRequest, /Разработчик открывает этот запрос одновременно с запросом кода/u);
   assert.doesNotMatch(statusRequest, /только после[^\n]*слияния/u);
   assert.match(statusRequest, /- \[ \] Техлид нажал Merge в `main` своего fork после проверки разработчика и подтверждения аналитика/u);
 });
