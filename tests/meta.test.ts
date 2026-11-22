@@ -67,7 +67,7 @@ test("OpenSpec Store identity is committed and points to this meta repository", 
   assert.match(store, /^id:\s*sdd-credit-calculator-product-meta$/m);
   assert.match(store, /remote:\s*https:\/\/github\.com\/apolenkov\/sdd-guide-credit-calculator-stage-4-requirements\.git/);
   assert.match(lock, /repository:\s*https:\/\/github\.com\/apolenkov\/sdd-guide-credit-calculator-stage-4-code\.git/u);
-  assert.match(lock, /commit:\s*6790e7ddc635e531fd849db0f35be4dd2b71d829/u);
+  assert.match(lock, /commit:\s*10c1ccab5e75178a2fcc14bdabeed81dad968ce0/u);
 });
 
 test("Store setup uses the official CLI without a custom wrapper", async () => {
