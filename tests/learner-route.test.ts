@@ -11,7 +11,7 @@ test("learner uses a fork-first fail-closed Git flow", async () => {
   const organizer = await readFile(resolve(root, "docs/organizer-stage-4.md"), "utf8");
   assert.match(readme, /Организатор готовит и публикует персональную ветку/u);
   assert.match(readme, /на GitHub, нажмите \*\*Fork\*\*[\s\S]*?снимите флажок\s+\*\*Copy the main branch only\*\*/u);
-  assert.match(readme, /git clone --branch course\/<LOGIN>\/stage-4-import-base --single-branch \\\s+<FORK_REPOSITORY_URL> \\\s+sdd-guide-credit-calculator-stage-4-requirements/u);
+  assert.match(readme, /git clone --branch course\/<LOGIN>\/stage-4-import-base --single-branch \\\s+<FORK_REPOSITORY_URL> \\\s+ai-pdlc-learning-stage-4-requirements/u);
   assert.match(readme, /origin.*ваш fork/su);
   assert.match(readme, /git clone --no-checkout <FORK_REPOSITORY_URL>/u);
   assert.match(readme, /git remote add upstream <META_REPOSITORY_URL>/u);
@@ -42,14 +42,14 @@ test("self-study learner builds a personal base from the published example and u
     readFile(resolve(root, "AGENTS.md"), "utf8"),
     readFile(resolve(root, ".agents/skills/setup-analysis-workspace/SKILL.md"), "utf8"),
   ]);
-  const sourceCheck = /git ls-remote https:\/\/github\.com\/apolenkov\/sdd-guide-credit-calculator-stage-4-requirements\.git refs\/heads\/course\/example\/stage-4-import-base/u;
+  const sourceCheck = /git ls-remote https:\/\/github\.com\/apolenkov\/ai-pdlc-learning-stage-4-requirements\.git refs\/heads\/course\/example\/stage-4-import-base/u;
   assert.match(readme, /git fetch origin course\/example\/stage-4-import-base\n\s*git rev-parse FETCH_HEAD/u);
   assert.match(readme, /git switch -c course\/your_login\/stage-4-import-base FETCH_HEAD\n\s*git push -u origin course\/your_login\/stage-4-import-base/u);
   assert.match(readme, /Сверьте SHA с исходным репозиторием курса, а не со своим fork/u);
   assert.match(readme, sourceCheck);
   assert.match(readme, /Сравните его с выводом `git rev-parse FETCH_HEAD` из шага 3\. Совпал — это ваш `IMPORT_BASE_SHA`\. Не совпал — копия в fork устарела[\s\S]*?остановитесь, базу не создавайте/u);
   assert.match(readme, /grep '"commit"' docs\/course\/planning-provenance\.json\n\s*grep 'commit:' services\.lock\.yaml/u);
-  for (const field of ["META_REPOSITORY_URL=https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git", "IMPORT_BASE_BRANCH=course/your_login/stage-4-import-base", "IMPORT_BASE_SHA=", "PLANNING_SHA=", "SERVICE_SHA=", "REVIEW_REFERENCE="]) {
+  for (const field of ["META_REPOSITORY_URL=https://github.com/apolenkov/ai-pdlc-learning-stage-4-requirements.git", "IMPORT_BASE_BRANCH=course/your_login/stage-4-import-base", "IMPORT_BASE_SHA=", "PLANNING_SHA=", "SERVICE_SHA=", "REVIEW_REFERENCE="]) {
     assert.ok(readme.includes(`   ${field}`), `self-study contract must include ${field}`);
   }
   for (const content of [agents, skill]) {

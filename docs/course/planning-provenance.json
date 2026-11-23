@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": {
-    "repository": "https://github.com/apolenkov/sdd-guide-credit-calculator-stage-1.git",
+    "repository": "https://github.com/apolenkov/ai-pdlc-learning-stage-1.git",
     "commit": "a304386b1a33d160cbc297de2812ddeaeddfe380",
     "workspace": ".workspace/planning/stage-3"
   },

@@ -65,9 +65,9 @@ test("OpenSpec Store identity is committed and points to this meta repository", 
   ]);
   assert.match(store, /^version:\s*1$/m);
   assert.match(store, /^id:\s*sdd-credit-calculator-product-meta$/m);
-  assert.match(store, /remote:\s*https:\/\/github\.com\/apolenkov\/sdd-guide-credit-calculator-stage-4-requirements\.git/);
-  assert.match(lock, /repository:\s*https:\/\/github\.com\/apolenkov\/sdd-guide-credit-calculator-stage-4-code\.git/u);
-  assert.match(lock, /commit:\s*10c1ccab5e75178a2fcc14bdabeed81dad968ce0/u);
+  assert.match(store, /remote:\s*https:\/\/github\.com\/apolenkov\/ai-pdlc-learning-stage-4-requirements\.git/);
+  assert.match(lock, /repository:\s*https:\/\/github\.com\/apolenkov\/ai-pdlc-learning-stage-4-code\.git/u);
+  assert.match(lock, /commit:\s*bf47b89d785a6f93a66702a50e7c4671fd438779/u);
 });
 
 test("Store setup uses the official CLI without a custom wrapper", async () => {
@@ -145,7 +145,7 @@ test("Store and Workset architecture keeps pinned workspace read-only", async ()
   assert.match(architecture, /\.workspace\/services\/credit-calculator.*read-only/u);
   assert.match(architecture, /```mermaid[\s\S]*flowchart LR/u);
   assert.match(architecture, /Подготовленный путь аналитика[\s\S]*Готовый репозиторий кода практикума разработки/u);
-  assert.match(architecture, /sdd-guide-credit-calculator-stage-4-code\//u);
+  assert.match(architecture, /ai-pdlc-learning-stage-4-code\//u);
   assert.match(architecture, /переносить или удалять старые требования не нужно/u);
   assert.match(architecture, /root\.source: declared/u);
   assert.match(architecture, /личные пары и service pins не заменяются автоматически/u);

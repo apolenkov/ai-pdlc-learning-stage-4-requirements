@@ -4,15 +4,15 @@
 
 ## Источники
 
-- Planning source repository: `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-1.git`
+- Planning source repository: `https://github.com/apolenkov/ai-pdlc-learning-stage-1.git`
 - Planning source branch/ref: `course/example/stage-3-ai-payment-summary`
 - Planning source SHA: `a304386b1a33d160cbc297de2812ddeaeddfe380`
 - Planning source workspace after bootstrap: `.workspace/planning/stage-3`
 - Main specs source/target: `openspec/specs/` — в источнике только `.gitkeep`, предметной main spec нет
 - Active Change source/target: `openspec/changes/add-payment-summary/` — 5 файлов, 3 требования, 10 сценариев, 9 задач `- [ ]`
 - Active Change source/target: `openspec/changes/add-reset-and-years-term/` — 6 файлов, 7 требований, 23 сценария, 12 задач `- [ ]`
-- Service source repository: `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code.git`
-- Service context SHA in `services.lock.yaml`: `10c1ccab5e75178a2fcc14bdabeed81dad968ce0`
+- Service source repository: `https://github.com/apolenkov/ai-pdlc-learning-stage-4-code.git`
+- Service context SHA in `services.lock.yaml`: `bf47b89d785a6f93a66702a50e7c4671fd438779`
 
 Повторите строку `Active Change source/target` для каждого имени из `planning-provenance.json#imports.activeChanges`. SHA планирования и service SHA описывают независимые роли. Repository и SHA могут совпасть, но service pin нельзя выводить из planning provenance без отдельной проверки.
 

@@ -107,7 +107,7 @@ cp docs/templates/requirements-traceability.md docs/course/requirements-traceabi
 
 Заполните оба файла в `docs/course/` без оставшихся `<...>`. В transfer перечислите все активные Changes из manifest, `<PLANNING_SHA>`, отдельный `<SERVICE_SHA>` и фактические review. В traceability добавьте каждое унаследованное требование и сценарий; не подгоняйте строки под заранее заданное число.
 
-Для новой personal import-base используйте сервис `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code.git` и отдельно проверенный полный `<SERVICE_SHA>` из актуального `services.lock.yaml` эталона. Переименование репозитория само по себе не разрешает менять service SHA. Происхождение планирования указывает на конкретный согласованный planning source после шага 3 «Изменение в OpenSpec»; шаг 3 входит в его историю. Не заменяйте его адресом нового сервиса и не записывайте planning SHA в service pin. Уже опубликованные личные базы и их pins не меняйте автоматически. В `openspec/config.yaml` не перечисляйте случайный фиксированный набор унаследованных Changes: источником служит manifest.
+Для новой personal import-base используйте сервис `https://github.com/apolenkov/ai-pdlc-learning-stage-4-code.git` и отдельно проверенный полный `<SERVICE_SHA>` из актуального `services.lock.yaml` эталона. Переименование репозитория само по себе не разрешает менять service SHA. Происхождение планирования указывает на конкретный согласованный planning source после шага 3 «Изменение в OpenSpec»; шаг 3 входит в его историю. Не заменяйте его адресом нового сервиса и не записывайте planning SHA в service pin. Уже опубликованные личные базы и их pins не меняйте автоматически. В `openspec/config.yaml` не перечисляйте случайный фиксированный набор унаследованных Changes: источником служит manifest.
 
 ## 3. Проверьте точность переноса
 
@@ -188,7 +188,7 @@ REVIEW_REFERENCE=<REVIEW_REFERENCE>
 Ученик открывает `<META_REPOSITORY_URL>` в GitLab и создаёт fork в своё личное
 пространство — GitLab копирует все ветки. Затем он
 клонирует `<IMPORT_BASE_BRANCH>` из своего fork в каноническую папку
-`sdd-guide-credit-calculator-stage-4-requirements`, сверяет `<IMPORT_BASE_SHA>`,
+`ai-pdlc-learning-stage-4-requirements`, сверяет `<IMPORT_BASE_SHA>`,
 открывает папку в VS Code и вызывает project skill `setup-analysis-workspace`
 из чата агента Kilo; навыки OpenSpec лежат в универсальном `.agents/skills`
 и читаются Kilo автоматически. Если
@@ -196,7 +196,7 @@ REVIEW_REFERENCE=<REVIEW_REFERENCE>
 не предлагайте создавать ветку от `main`, перезаписывать fork или писать в
 upstream.
 
-Для будущей реализации передайте [инструкцию разработчика](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md). URL сервиса и его полный SHA уже входят в `services.lock.yaml` и договор как `<SERVICE_SHA>`. Это не разрешает Apply и не требует заменять существующую рабочую папку ученика.
+Для будущей реализации передайте [инструкцию разработчика](https://github.com/apolenkov/ai-pdlc-learning-stage-4-code/blob/main/docs/developer-handoff.md). URL сервиса и его полный SHA уже входят в `services.lock.yaml` и договор как `<SERVICE_SHA>`. Это не разрешает Apply и не требует заменять существующую рабочую папку ученика.
 
 В пользовательской среде project skill проверяет регистрацию заново. Явный запрос полной подготовки разрешает создать отсутствующую запись для текущего checkout. Если ID указывает на другой root, skill показывает оба точных пути и останавливается; переключение возможно только после отдельного подтверждения владельца среды и повторной проверки состояния.
 

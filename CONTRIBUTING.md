@@ -5,8 +5,8 @@
 ## Граница ролей
 
 - Организатор получает полный planning SHA ученика, переносит из его Git tree весь `openspec/specs/` и все активные Changes, формирует manifest, проверяет отдельный service pin и публикует personal import-base. Ученику передаётся полный договор: URL метарепозитория, branch, import-base SHA, planning SHA, service SHA и review reference.
-- Ученик создаёт fork с копированием всех веток, клонирует свой fork в `sdd-guide-credit-calculator-stage-4-requirements`; `origin` остаётся fork. Upstream используется только для fail-closed чтения отсутствующей import-base, без записи, force и подстановки `main`.
-- Полный `setup-analysis-workspace` проверяет requirements, создаёт либо проверяет соседний `sdd-guide-credit-calculator-stage-4-code` на service pin, выполняет setup/check:code, Store doctor, два реальных bootstrap и check:store.
+- Ученик создаёт fork с копированием всех веток, клонирует свой fork в `ai-pdlc-learning-stage-4-requirements`; `origin` остаётся fork. Upstream используется только для fail-closed чтения отсутствующей import-base, без записи, force и подстановки `main`.
+- Полный `setup-analysis-workspace` проверяет requirements, создаёт либо проверяет соседний `ai-pdlc-learning-stage-4-code` на service pin, выполняет setup/check:code, Store doctor, два реальных bootstrap и check:store.
 - Отсутствующая Store-запись может быть создана явным запросом полной подготовки. Конфликтующий root не заменяется без отдельного подтверждения точных старого и нового путей; существующая code-папка не переключается и не перезаписывается.
 - После чистого отчёта skill ученик продолжает основной маршрут: шаг 3 «Изменение в OpenSpec» (обязательный) перед шагами 4–5; его активные Changes входят в source. Code checkout остаётся detached до принятия требований и отдельного разрешения на реализацию.
 

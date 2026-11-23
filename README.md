@@ -4,12 +4,12 @@
 
 | | |
 | --- | --- |
-| Шаг курса | [Шаг 4. Команда продукта](https://apolenkov.github.io/customdev-learning/guides/s4-team.html) и [шаг 5. Контекст продукта](https://apolenkov.github.io/customdev-learning/guides/s4-product.html) |
+| Шаг курса | [Шаг 4. Команда продукта](https://apolenkov.github.io/ai-pdlc-learning/guides/s4-team.html) и [шаг 5. Контекст продукта](https://apolenkov.github.io/ai-pdlc-learning/guides/s4-product.html) |
 | Вход | учебная база — ветка `course/<LOGIN>/stage-4-import-base`, которую готовит организатор; без организатора — опубликованная `course/example/stage-4-import-base` из этого репозитория: вы получаете её из своего fork, сверяете SHA с исходным репозиторием курса и сами создаёте из неё личную базу `course/your_login/stage-4-import-base` |
 | Действие | в личной ветке от базы аналитик готовит Change в `openspec/`, сверяясь с read-only снимками в `.workspace/` |
 | Результат | PR с Change в своём fork метарепозитория, одобренный владельцем продукта; архитектор приглашён через @, потому что изменение затрагивает интеграцию с системой банка |
 
-**С чего начать.** На GitHub нажмите **Fork**. Учебная база — не `main`, поэтому снимите флажок **Copy the main branch only**. Если вы работаете в GitLab, создайте проект через **New project → Import project → Repository by URL** и вставьте адрес `https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git`. Дальше порядок зависит от того, есть ли у вас организатор: раздел 1 описывает оба маршрута.
+**С чего начать.** На GitHub нажмите **Fork**. Учебная база — не `main`, поэтому снимите флажок **Copy the main branch only**. Если вы работаете в GitLab, создайте проект через **New project → Import project → Repository by URL** и вставьте адрес `https://github.com/apolenkov/ai-pdlc-learning-stage-4-requirements.git`. Дальше порядок зависит от того, есть ли у вас организатор: раздел 1 описывает оба маршрута.
 
 ```text
 личный Git SHA согласованного planning source
@@ -18,7 +18,7 @@
 personal import-base в product-meta ── публикация ветки
               │ ученик копирует все ветки в fork и клонирует свой fork
               ▼
-sdd-guide-credit-calculator-stage-4-requirements/
+ai-pdlc-learning-stage-4-requirements/
 ├── openspec/                         единственное место изменения требований
 ├── .workspace/planning/stage-3/      source provenance, только чтение
 └── .workspace/services/...           контекст сервиса, только чтение
@@ -30,8 +30,8 @@ sdd-guide-credit-calculator-stage-4-requirements/
 
 Для будущей реализации готовый комплект для практикума разработки состоит из двух соседних рабочих папок:
 
-- `sdd-guide-credit-calculator-stage-4-requirements/` — требования, планы Changes и задачи в `openspec/`.
-- `sdd-guide-credit-calculator-stage-4-code/` — код в `src/` и тесты в `test/`.
+- `ai-pdlc-learning-stage-4-requirements/` — требования, планы Changes и задачи в `openspec/`.
+- `ai-pdlc-learning-stage-4-code/` — код в `src/` и тесты в `test/`.
 
 В папке кода `openspec/config.yaml` уже содержит указатель на Store `sdd-credit-calculator-product-meta`. Местных `openspec/specs/` и `openspec/changes/` там нет: для нового комплекта не нужно переносить или удалять старые требования. Указатель не клонирует product-meta и не регистрирует Store.
 
@@ -39,7 +39,7 @@ Project skill подготовки создаёт отдельный сосед�
 pin, но не создаёт в нём ветку разработки и не разрешает реализацию. Существующие
 личные папки, ветки и service pins не заменяются автоматически.
 
-Точные команды будущей реализации приведены в [инструкции разработчика](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md).
+Точные команды будущей реализации приведены в [инструкции разработчика](https://github.com/apolenkov/ai-pdlc-learning-stage-4-code/blob/main/docs/developer-handoff.md).
 
 Planning SHA и service SHA фиксируют независимые роли: происхождение требований и
 версию кода для чтения. Репозитории и SHA могут совпасть, но service pin выбирают
@@ -86,8 +86,8 @@ Planning SHA и service SHA фиксируют независимые роли: 
 2. Скопируйте адрес своего fork кнопкой **Code** (GitHub) или **Code → Clone with HTTPS** (GitLab) и клонируйте его. Адрес — ваш fork или проект в GitLab, не репозиторий организации `apolenkov`:
 
    ```bash
-   git clone https://github.com/your_login/sdd-guide-credit-calculator-stage-4-requirements.git
-   cd sdd-guide-credit-calculator-stage-4-requirements
+   git clone https://github.com/your_login/ai-pdlc-learning-stage-4-requirements.git
+   cd ai-pdlc-learning-stage-4-requirements
    git remote get-url origin
    ```
 
@@ -103,10 +103,10 @@ Planning SHA и service SHA фиксируют независимые роли: 
 4. Сверьте SHA с исходным репозиторием курса, а не со своим fork: копия ветки в fork могла устареть.
 
    ```bash
-   git ls-remote https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git refs/heads/course/example/stage-4-import-base
+   git ls-remote https://github.com/apolenkov/ai-pdlc-learning-stage-4-requirements.git refs/heads/course/example/stage-4-import-base
    ```
 
-   Первая колонка вывода — SHA опубликованного примера. Сравните его с выводом `git rev-parse FETCH_HEAD` из шага 3. Совпал — это ваш `IMPORT_BASE_SHA`. Не совпал — копия в fork устарела: получите ветку прямо из исходного репозитория (`git fetch https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git refs/heads/course/example/stage-4-import-base`) и повторите сверку с новым `FETCH_HEAD`. Вывод `ls-remote` пустой — пример в исходном репозитории не опубликован: остановитесь, базу не создавайте и сообщите автору курса адрес fork.
+   Первая колонка вывода — SHA опубликованного примера. Сравните его с выводом `git rev-parse FETCH_HEAD` из шага 3. Совпал — это ваш `IMPORT_BASE_SHA`. Не совпал — копия в fork устарела: получите ветку прямо из исходного репозитория (`git fetch https://github.com/apolenkov/ai-pdlc-learning-stage-4-requirements.git refs/heads/course/example/stage-4-import-base`) и повторите сверку с новым `FETCH_HEAD`. Вывод `ls-remote` пустой — пример в исходном репозитории не опубликован: остановитесь, базу не создавайте и сообщите автору курса адрес fork.
 5. Создайте из него личную базу и опубликуйте её в своём fork:
 
    ```bash
@@ -128,7 +128,7 @@ Planning SHA и service SHA фиксируют независимые роли: 
 
    ```text
    Учусь без организатора, договор собран по README.
-   META_REPOSITORY_URL=https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git
+   META_REPOSITORY_URL=https://github.com/apolenkov/ai-pdlc-learning-stage-4-requirements.git
    IMPORT_BASE_BRANCH=course/your_login/stage-4-import-base
    IMPORT_BASE_SHA=<SHA из шага 4>
    PLANNING_SHA=<SHA из planning-provenance.json>
@@ -156,8 +156,8 @@ Force push, запись в чужой репозиторий и `main` в эт�
 set -eu
 git clone --branch course/<LOGIN>/stage-4-import-base --single-branch \
   <FORK_REPOSITORY_URL> \
-  sdd-guide-credit-calculator-stage-4-requirements
-cd sdd-guide-credit-calculator-stage-4-requirements
+  ai-pdlc-learning-stage-4-requirements
+cd ai-pdlc-learning-stage-4-requirements
 git remote get-url origin
 test "$(git rev-parse HEAD)" = "<IMPORT_BASE_SHA>"
 git status --short --branch
@@ -170,8 +170,8 @@ git status --short --branch
 ```bash
 set -eu
 git clone --no-checkout <FORK_REPOSITORY_URL> \
-  sdd-guide-credit-calculator-stage-4-requirements
-cd sdd-guide-credit-calculator-stage-4-requirements
+  ai-pdlc-learning-stage-4-requirements
+cd ai-pdlc-learning-stage-4-requirements
 git remote add upstream <META_REPOSITORY_URL>
 existing_base=$(git ls-remote --heads origin refs/heads/course/<LOGIN>/stage-4-import-base)
 test -z "$existing_base"
@@ -206,7 +206,7 @@ SHA. Не используйте `main`, force push и запись в `upstream
 
 Project skill проверяет базовую ветку и `IMPORT_BASE_SHA`, выполняет requirements
 `npm ci` и `npm run setup`, безопасно создаёт либо проверяет соседний
-`sdd-guide-credit-calculator-stage-4-code` на точном service pin, запускает его
+`ai-pdlc-learning-stage-4-code` на точном service pin, запускает его
 `check:code`, связывает локальный Store, выполняет `store doctor`, два реальных
 bootstrap и `check:store`. Новый code checkout остаётся detached; ветка реализации
 не создаётся.
