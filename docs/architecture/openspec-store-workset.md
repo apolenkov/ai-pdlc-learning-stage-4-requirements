@@ -26,8 +26,8 @@ flowchart LR
 
 ```bash
 git clone --branch course/<LOGIN>/stage-4-import-base --single-branch \
-  <FORK_REPOSITORY_URL> sdd-guide-credit-calculator-stage-4-requirements
-cd sdd-guide-credit-calculator-stage-4-requirements
+  <FORK_REPOSITORY_URL> ai-pdlc-learning-stage-4-requirements
+cd ai-pdlc-learning-stage-4-requirements
 ```
 
 В чате агента Kilo ученик явно вызывает `setup-analysis-workspace`;
@@ -61,8 +61,8 @@ Store identity хранится в `.openspec-store/store.yaml`. Регистр�
 
 ```text
 work/
-  sdd-guide-credit-calculator-stage-4-requirements/  # specs, Changes, tasks
-  sdd-guide-credit-calculator-stage-4-code/          # src и runtime-тесты
+  ai-pdlc-learning-stage-4-requirements/  # specs, Changes, tasks
+  ai-pdlc-learning-stage-4-code/          # src и runtime-тесты
 ```
 
 Полный setup заранее создаёт новый code checkout в detached HEAD на SHA из
@@ -81,6 +81,6 @@ checkout и только тогда создаёт личную ветку. В �
 
 После отдельного разрешения разработчик определяет порядок реализации по явным зависимостям всех импортированных Changes и `limit-credit-amount`. Для каждого Change сначала читаются `status` и `instructions apply`, после проверки отмечаются только реально выполненные tasks.
 
-Полные команды и сообщения находятся в [`docs/developer-handoff.md` сервиса R4](https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-code/blob/main/docs/developer-handoff.md). Commit, push, merge, обновление `services.lock.yaml` и архивирование Changes не выполняются Store или Workset автоматически.
+Полные команды и сообщения находятся в [`docs/developer-handoff.md` сервиса R4](https://github.com/apolenkov/ai-pdlc-learning-stage-4-code/blob/main/docs/developer-handoff.md). Commit, push, merge, обновление `services.lock.yaml` и архивирование Changes не выполняются Store или Workset автоматически.
 
 Workset остаётся необязательным списком папок; он не клонирует Git и не объединяет артефакты разных Changes.

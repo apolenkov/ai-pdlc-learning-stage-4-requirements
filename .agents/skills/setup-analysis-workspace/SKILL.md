@@ -29,7 +29,7 @@ README, подраздел «Самостоятельно, без организ
 `course/<LOGIN>/stage-4-import-base` в fork, HEAD равен `IMPORT_BASE_SHA`.
 `IMPORT_BASE_SHA` сверьте с `course/example/stage-4-import-base` исходного
 репозитория курса, не fork:
-`git ls-remote https://github.com/apolenkov/sdd-guide-credit-calculator-stage-4-requirements.git refs/heads/course/example/stage-4-import-base`.
+`git ls-remote https://github.com/apolenkov/ai-pdlc-learning-stage-4-requirements.git refs/heads/course/example/stage-4-import-base`.
 Расхождение или пустой вывод — STOP. `PLANNING_SHA`, `SERVICE_SHA` и
 `REVIEW_REFERENCE` в этом маршруте берутся из manifest, `services.lock.yaml` и
 `docs/course/stage-3-transfer.md` проверенной базы.
@@ -38,7 +38,7 @@ README, подраздел «Самостоятельно, без организ
 `services.lock.yaml`, planning SHA из manifest. Не подставляйте planning SHA
 вместо service pin или `main`. Ожидается отдельный stage-4-code, не stage-3.
 Покажите requirements root, repository, pin и соседний
-`<parent-of-git-root>/sdd-guide-credit-calculator-stage-4-code`. Иной code root
+`<parent-of-git-root>/ai-pdlc-learning-stage-4-code`. Иной code root
 согласуйте отдельно, не выбирайте его молча.
 
 До npm/Store проверьте существующий code-путь через `lstat`: symlink, обычный файл,
