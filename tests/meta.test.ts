@@ -67,7 +67,7 @@ test("OpenSpec Store identity is committed and points to this meta repository", 
   assert.match(store, /^id:\s*sdd-credit-calculator-product-meta$/m);
   assert.match(store, /remote:\s*https:\/\/github\.com\/apolenkov\/ai-pdlc-learning-stage-4-requirements\.git/);
   assert.match(lock, /repository:\s*https:\/\/github\.com\/apolenkov\/ai-pdlc-learning-stage-4-code\.git/u);
-  assert.match(lock, /commit:\s*10c1ccab5e75178a2fcc14bdabeed81dad968ce0/u);
+  assert.match(lock, /commit:\s*bf47b89d785a6f93a66702a50e7c4671fd438779/u);
 });
 
 test("Store setup uses the official CLI without a custom wrapper", async () => {

@@ -2,5 +2,5 @@ version: 1
 services:
   credit-calculator:
     repository: https://github.com/apolenkov/ai-pdlc-learning-stage-4-code.git
-    commit: 10c1ccab5e75178a2fcc14bdabeed81dad968ce0
+    commit: bf47b89d785a6f93a66702a50e7c4671fd438779
     workspace: .workspace/services/credit-calculator
