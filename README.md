@@ -1,5 +1,7 @@
 # Шаги 4–5. Метарепозиторий продукта и OpenSpec Store
 
+[![License: MIT](https://img.shields.io/github/license/apolenkov/ai-pdlc-learning-stage-4-requirements)](LICENSE)
+
 Метарепозиторий продукта с OpenSpec Store: аналитик в личном fork готовит Change по запросу лимита суммы кредита. Это шаги 4–5 маршрута курса, после шага 3 «Изменение в OpenSpec»; реализация кода сюда не входит.
 
 | | |
