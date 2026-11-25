@@ -20,7 +20,7 @@
     "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
-    "@fission-ai/openspec": "1.14.3",
+    "@fission-ai/openspec": "2.1.1",
     "@types/node": "^26.6.5",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
